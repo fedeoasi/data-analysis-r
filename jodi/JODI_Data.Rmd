@@ -5,22 +5,23 @@ output: html_document
 
 # Dataset
 
-In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), which is an international organization that provides open data about oil and natural gas.
+In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), which is an international organization that provides open data about oil and natural gas. The first data gathering exercise was launched in 2001 and many countries participated, adding up to an estimated coverage of about 90% world supply. 
 
 The dataset we are going to use is the World Primary dataset, which can be downloaded from the [Data Downloads](https://www.jodidata.org/oil/database/data-downloads.aspx) page on the JODI website.
+The World Primary dataset contains data about Crude Oil, Natural Gas Liquids (NGL), and other primary sources (Other). The World Secondary dataset contains data about secondary products such as Gas/diesel oil, Fuel oil, etc.
 
 ```{r load-jodi, echo=FALSE}
 jodi <- read.csv('world_Primary_CSV.csv')
 ```
 
-The graphs are generated using R with the following libraries:
+The analysis that follows was performed using R with the following libraries:
 ```{r load-packages, message=FALSE}
 library(knitr)
 library(dplyr)
 library(ggplot2)
 ```
 
-As a preprocessing step, we filter the dataset by date to only include past ten years and also remove the current year.
+The variables we are going to use in this write up are: country, year, and quantity, product, flow, and unit. As a preprocessing step, the dataset was filtered by date to only include the past ten years and also remove the current year (2017).
 
 ```{r, echo=FALSE}
 add_year <- function(dataset) {
@@ -30,7 +31,7 @@ add_year <- function(dataset) {
 }
 
 jodi <- add_year(jodi)
-jodi <- filter(jodi, year >= 2006)
+jodi <- filter(jodi, year > 2006)
 
 group_by_year <- function(dataset) {
   return(dataset %>%
@@ -39,20 +40,34 @@ group_by_year <- function(dataset) {
 } 
 ```
 
-A quick view of the dataset shows what the main variables are:
-```{r}
-str(jodi)
+## Products
+
+The available primary products are ...
+
+```{r, echo=FALSE}
+jodi_us <- filter(jodi, country == 'USA', unit == 'KBBL', flow == 'PRODREFOUT')
+
+jodi_us_prod_by_year <- jodi_us %>%
+  group_by(year, product) %>%
+  summarise(quantity = sum(quantity)) %>%
+  mutate(quantity = quantity / 1000)
+
+ggplot(jodi_us_prod_by_year, aes(year, quantity)) +   
+  geom_bar(aes(fill = product), position = "dodge", stat="identity") +
+  ggtitle(label = "US All Oil Products", subtitle = NULL) +
+  labs(x = "Year", y = 'Quantity (Millions of Barrels)') +
+  scale_x_continuous(breaks = pretty(jodi_us_prod_by_year$year, n = 10))
 ```
-
-Other than country, year, and quantity, the fields we are going to be looking at are:
-
-*  product: `r levels(jodi$product)`
-*  flow: `r levels(jodi$flow)`
-*  unit: `r levels(jodi$unit)`
 
 # World Producers
 
 In this section we are going to find out which countries are the top producers.
+
+
+Three countries are definitely the top producers: Saudi Arabia, Russia, and the United States. Iraq, China, and Iran complete the top 5 across the last three years, although their output is around a third of Saudi Arabia.
+
+
+Iraq has come up a lot. Venezuela has come down. Expand on this.
 
 ```{r, echo=FALSE}
 country_yearly_stats <- function(dataset, yearToFilter) {
@@ -91,8 +106,6 @@ with_2013 <- left_join(with_2014, table2013, by = "country")
 kable(with_2013[1:15,], caption = 'Top 15 Crude Oil Producers (Millions of Barrels)', col.names = c("Country", "2016", "2015", "2014", "2013"))
 ```
 
-Three countries are definitely the top producers: Saudi Arabia, Russia, and the United States. Iraq, China, and Iran complete the top 5 across the last three years, although their output is around a third of Saudi Arabia.
-
 If we only look at the three major producers, we can see that the United States has recovered a lot of ground in the last few years:
 
 ```{r, echo=FALSE}
@@ -110,60 +123,27 @@ ggplot(quantity_by_year_and_country, aes(year, quantity)) +
   scale_x_continuous(breaks = pretty(quantity_by_year_and_country$year, n = 10))
 ```
 
-# United States
+# World Production
 
-In this section we are going to look specifically at the United States.
-
-## Crude Oil
-
-### Production, Imports, and Exports
-
-The United States has seen a boom in oil production after 2010, which is commonly attributed to the technological advances in horizontal drilling and hydraulic fracturing. The graph also shows declining imports and rising exports, although they are still very small when compared to production and imports. 
- 
-```{r, echo=FALSE}
-jodi_us_prod <- filter(jodi, country == 'USA', 
-                       flow == 'PRODREFOUT' | flow == 'TOTEXPSB' | flow == 'TOTIMPSB', 
-                       product == 'CRUDEOIL', unit == 'KBBL')
-
-jodi_us_prod_by_year <- jodi_us_prod %>%
-  group_by(year, flow) %>%
-  summarise(quantity = sum(quantity)) %>%
-  mutate(quantity = quantity / 1000)
-
-ggplot(jodi_us_prod_by_year, aes(year, quantity)) +   
-  geom_bar(aes(fill = flow), position = "dodge", stat="identity") +
-  ggtitle(label = "US Crude Oil Production, Import, and Export by Year", subtitle = NULL) +
-  labs(x = "Year", y = 'Quantity (Millions of Barrels)') +
-  scale_x_continuous(breaks = pretty(jodi_us_prod_by_year$year, n = 10)) +
-  scale_fill_discrete(
-    name = "Flow",
-    breaks = c("PRODREFOUT", "TOTEXPSB", "TOTIMPSB"),
-    labels = c("Production", "Exports", "Imports"))
-```
-
-## All Products
+TODO Make this a line graph.
 
 ```{r, echo=FALSE}
-jodi_us <- filter(jodi, country == 'USA', unit == 'KBBL', flow == 'PRODREFOUT')
-
-jodi_us_prod_by_year <- jodi_us %>%
+jodi_prod_and_use <- filter(jodi, product == 'CRUDEOIL', unit == 'KBBL', !is.na(quantity))
+by_year <- jodi_prod_and_use %>%
+  mutate(quantity = quantity / 1000) %>%
   group_by(year, product) %>%
-  summarise(quantity = sum(quantity)) %>%
-  mutate(quantity = quantity / 1000)
+  summarise(quantity = sum(quantity))
 
-ggplot(jodi_us_prod_by_year, aes(year, quantity)) +   
+ggplot(by_year, aes(year, quantity)) +   
   geom_bar(aes(fill = product), position = "dodge", stat="identity") +
-  ggtitle(label = "US All Oil Products", subtitle = NULL) +
+  ggtitle(label = "Production and Direct Use", subtitle = NULL) +
   labs(x = "Year", y = 'Quantity (Millions of Barrels)') +
-  scale_x_continuous(breaks = pretty(jodi_us_prod_by_year$year, n = 10))
+  scale_x_continuous(breaks = pretty(by_year$year, n = 10))
 ```
 
-### Saudi Arabia
-
-Saudi Arabia is the world top producer.
-
 ```{r, echo=FALSE}
-jodi_prod <- filter(jodi, country == 'SARABIA', 
+country_yearly_graph <- function(queryCountry) {
+  jodi_prod <- filter(jodi, country == queryCountry, 
                        flow == 'PRODREFOUT' | flow == 'TOTEXPSB' | flow == 'TOTIMPSB', 
                        product == 'CRUDEOIL', unit == 'KBBL')
 
@@ -174,11 +154,50 @@ jodi_us_prod_by_year <- jodi_prod %>%
 
 ggplot(jodi_us_prod_by_year, aes(year, quantity)) +   
   geom_bar(aes(fill = flow), position = "dodge", stat="identity") +
-  ggtitle(label = "Saudi Arabia Crude Oil Production, Import, and Export by Year", subtitle = NULL) +
+  ggtitle(label = "", subtitle = NULL) +
   labs(x = "Year", y = 'Quantity (Millions of Barrels)') +
   scale_x_continuous(breaks = pretty(jodi_us_prod_by_year$year, n = 10)) +
   scale_fill_discrete(
     name = "Flow",
     breaks = c("PRODREFOUT", "TOTEXPSB", "TOTIMPSB"),
     labels = c("Production", "Exports", "Imports"))
+} 
+```
+
+# Individual Countries
+
+## Production, Imports, and Exports
+
+### Saudi Arabia
+
+Saudi Arabia is the world top producer.
+
+```{r, echo=FALSE}
+country_yearly_graph('SARABIA')
+```
+
+### Russia
+
+```{r, echo=FALSE}
+country_yearly_graph('RUSSIA')
+```
+
+### United States
+
+The United States has seen a boom in oil production after 2010, which is commonly attributed to the technological advances in horizontal drilling and hydraulic fracturing. The graph also shows declining imports and rising exports, although they are still very small when compared to production and imports. 
+ 
+```{r, echo=FALSE}
+country_yearly_graph('USA')
+```
+
+### Iraq
+
+```{r, echo=FALSE}
+country_yearly_graph('IRAQ')
+```
+
+### Venezuela
+
+```{r, echo=FALSE}
+country_yearly_graph('VENEZOPEC')
 ```
