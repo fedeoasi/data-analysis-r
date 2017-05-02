@@ -8,12 +8,12 @@ output:
 
 # Dataset
 
-In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), which is an international organization that provides open data about oil and natural gas. The first data gathering exercise was launched in 2001 and many countries participated, adding up to an estimated coverage of about 90% world supply. 
+In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), an international organization that provides open data about oil and natural gas. The first data gathering exercise was launched in 2001 and many countries participated adding up to an estimated coverage of about 90% world supply.
 
-The dataset we are going to use is the World Primary dataset, which can be downloaded from the [Data Downloads](https://www.jodidata.org/oil/database/data-downloads.aspx) page on the JODI website.
-The World Primary dataset contains data about Crude Oil, Natural Gas Liquids (NGL), and other primary sources (Other). The World Secondary dataset contains data about secondary products such as Gas/diesel oil, Fuel oil, etc.
+The dataset used is the World Primary dataset, which can be downloaded from the [Data Downloads](https://www.jodidata.org/oil/database/data-downloads.aspx) page on the JODI website.
+The dataset contains data about Crude Oil, Natural Gas Liquids (NGL), and other primary sources (Other). The World Secondary dataset contains data about secondary products such as Gas/diesel oil, Fuel oil, etc.
 
-Disclaimer: I am not an energy expert. Most of what I know comes from reading [The Quest](https://www.amazon.com/Quest-Energy-Security-Remaking-Modern/dp/0143121944) by Daniel Yergin, a book that I would recommend to anybody who wants to learn about the history of different energy sources and the geopolitical implications of energy.
+Disclaimer: I am not an energy expert. Most of what I know comes from reading [The Quest](https://www.amazon.com/Quest-Energy-Security-Remaking-Modern/dp/0143121944) by Daniel Yergin, a book that I highly recommend to anybody who is interested in the history of different energy sources and the geopolitical implications of energy.
 
 ```{r load-jodi, echo=FALSE}
 jodi <- read.csv('world_Primary_CSV.csv')
@@ -26,7 +26,7 @@ library(dplyr)
 library(ggplot2)
 ```
 
-The variables we are going to use are: country, year, and quantity, product, flow, and unit. As a preprocessing step, data about the current year (2017) was removed because it is not complete. Also, we are starting starting our graphs from 2007 so that they can fit nicely on the screen.
+The variables we are going to use are: country, date (year), quantity (in Millions of Barrels), product, flow (Production, Imports, and Exports). As a preprocessing step, data about the current year (2017) was removed because it is (understandably) incomplete. Also, our generated graphs only show the last ten years so that they can fit nicely on the screen.
 
 ```{r, echo=FALSE}
 add_year <- function(dataset) {
@@ -47,10 +47,13 @@ group_by_year <- function(dataset) {
 
 ## Products
 
-One of the data fields is Product, which is divided in Crude Oil, Natural Gas Liquids (not to be confused with Natural Gas), Other Crude, and Total Crude, which acts as the sum of the prior three. For some reason Total Crude is missing from some years. So we will be using Crude Oil, which is the major component anyway.
+One of the data fields is Product, which is divided in Crude Oil, Natural Gas Liquids (not to be confused with Natural Gas), Other Crude, and Total Crude, which acts as the sum of the prior three. For some reason Total Crude is missing from some years. 
+
+
+We are going to be using Crude Oil as a proxy for the total production. As the graph shows this is a reasonable assumption since most of the production is crude oil, and it roughly follows the same pattern.
 
 ```{r, echo=FALSE}
-jodi_us <- filter(jodi, country == 'USA', unit == 'KBBL', flow == 'PRODREFOUT', !is.na(quantity))
+jodi_us <- filter(jodi, country == 'USA', unit == 'KBBL', flow == 'PRODREFOUT')
 
 jodi_us_prod_by_year <- jodi_us %>%
   group_by(year, product) %>%
@@ -66,10 +69,11 @@ ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
 
 ## World Production
 
-In this section we are going to first look at the world prodution and then drill down at the country level to see which ones are the top producers. We will also see what were the biggest changes in recent times.
+In this section we are going to first look at the world prodution and then drill down at the country level.
+Hopefully this will give a good idea on who the top producers are and what were the recent changes and trends.
 
 
-The world 
+The world production has mostly gone up in the past 10 years, with the exception of the Great Recession of 2008, which lowered demand. It was mostly flat between 2009 and 2011, but then it picked up nicely.
 
 ```{r, echo=FALSE}
 jodi_prod_and_use <- filter(jodi, product == 'CRUDEOIL', unit == 'KBBL', !is.na(quantity))
