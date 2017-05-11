@@ -29,7 +29,7 @@ library(ggplot2)
 ```{r set-fig-path, echo=FALSE}
 jodi <- read.csv('world_Primary_CSV.csv')
 opts_knit$set(base.dir = getwd(), base.url = '/')
-opts_chunk$set(fig.path = 'assets/jodi-oil/') 
+opts_chunk$set(fig.path = 'assets/jodi-oil/')
 ```
 
 The variables we are going to use are: country, date (year), quantity (in Thousands of Barrels Per Day), product, flow (Production, Imports, and Exports). As a preprocessing step, data about the current year (2017) was removed because it is (understandably) incomplete. Also, our generated graphs only show the last ten years so that they can fit nicely on the screen.
@@ -50,7 +50,7 @@ group_by_year <- function(dataset) {
   return(dataset %>%
     group_by(year) %>%
     summarise(quantity = sum(quantity)))
-} 
+}
 ```
 
 ## Products
@@ -68,7 +68,7 @@ jodi_us_prod_by_year <- jodi_us %>%
   summarise(quantity = sum(quantity)) %>%
   mutate(quantity = quantity / 365)
 
-ggplot(jodi_us_prod_by_year, aes(year, quantity)) +   
+ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
   geom_bar(aes(fill = product), position = "dodge", stat="identity") +
   ggtitle(label = "US All Oil Products", subtitle = NULL) +
   labs(x = "Year", y = quantityLabel) +
@@ -89,7 +89,7 @@ by_year <- jodi_prod_and_use %>%
   group_by(year) %>%
   summarise(quantity = sum(quantity) / 365)
 
-ggplot(by_year, aes(year, quantity)) +   
+ggplot(by_year, aes(year, quantity)) +
   geom_line(stat="identity") +
   ggtitle(label = "Production and Direct Use", subtitle = NULL) +
   labs(x = "Year", y = quantityLabel) +
@@ -153,14 +153,14 @@ mega_table(jodi_prod, 'Thousands of Barrels Per Day (kbd)', 365)
 If we only look at the three major producers, we can see that the United States has recovered a lot of ground in the last few years:
 
 ```{r, echo=FALSE}
-jodi_prod <- filter(jodi, flow == 'PRODREFOUT', product == 'CRUDEOIL', unit == 'KBBL', 
+jodi_prod <- filter(jodi, flow == 'PRODREFOUT', product == 'CRUDEOIL', unit == 'KBBL',
                     country == 'USA' | country == 'RUSSIA' | country == 'SARABIA')
 quantity_by_year_and_country <- jodi_prod %>%
   mutate(quantity = quantity / 365) %>%
   group_by(year, country) %>%
   summarise(quantity = sum(quantity))
 
-ggplot(quantity_by_year_and_country, aes(year, quantity)) +   
+ggplot(quantity_by_year_and_country, aes(year, quantity)) +
   geom_bar(aes(fill = country), position = "dodge", stat="identity") +
   ggtitle(label = "Crude Oil Top 3 Producers", subtitle = NULL) +
   labs(x = "Year", y = quantityLabel) +
@@ -171,8 +171,8 @@ ggplot(quantity_by_year_and_country, aes(year, quantity)) +
 
 ```{r, echo=FALSE}
 country_yearly_graph <- function(queryCountry) {
-  jodi_prod <- filter(jodi, country == queryCountry, 
-                       flow == 'PRODREFOUT' | flow == 'TOTEXPSB' | flow == 'TOTIMPSB', 
+  jodi_prod <- filter(jodi, country == queryCountry,
+                       flow == 'PRODREFOUT' | flow == 'TOTEXPSB' | flow == 'TOTIMPSB',
                        product == 'CRUDEOIL', unit == 'KBBL')
 
 jodi_us_prod_by_year <- jodi_prod %>%
@@ -180,7 +180,7 @@ jodi_us_prod_by_year <- jodi_prod %>%
   summarise(quantity = sum(quantity)) %>%
   mutate(quantity = quantity / 365)
 
-ggplot(jodi_us_prod_by_year, aes(year, quantity)) +   
+ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
   geom_bar(aes(fill = flow), position = "dodge", stat="identity") +
   ggtitle(label = "", subtitle = NULL) +
   labs(x = "Year", y = quantityLabel) +
@@ -189,7 +189,7 @@ ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
     name = "Flow",
     breaks = c("PRODREFOUT", "TOTEXPSB", "TOTIMPSB"),
     labels = c("Production", "Exports", "Imports"))
-} 
+}
 ```
 
 ## Production, Imports, and Exports
@@ -211,7 +211,7 @@ country_yearly_graph('RUSSIA')
 ### United States
 
 The United States has seen a boom in oil production after 2010, which is commonly attributed to the technological advances in horizontal drilling and hydraulic fracturing. The graph also shows declining imports and rising exports, although they are still very small when compared to production and imports. 
- 
+
 ```{r, echo=FALSE}
 country_yearly_graph('USA')
 ```
