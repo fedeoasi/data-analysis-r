@@ -6,24 +6,21 @@ output:
 layout: post
 ---
 
-# Dataset
+## Dataset
 
-<!-- In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), an international organization that provides open data about oil and natural gas. The first data gathering exercise was launched in 2001 and many countries participated adding up to an estimated coverage of about 90% world supply. -->
+In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), an international organization that provides open data about oil and natural gas. JODI operated since its launch in 2001 with the participation of many countries, with an estimated coverage of about 90% world supply. 
 
 The dataset used is the World Primary dataset, which can be downloaded from the [Data Downloads](https://www.jodidata.org/oil/database/data-downloads.aspx) page on the JODI website.
 The dataset contains data about Crude Oil, Natural Gas Liquids (NGL), and other primary sources (Other). The World Secondary dataset contains data about secondary products such as Gas/Diesel oil, Fuel oil, etc.
 
 Disclaimer: I am not an energy expert. Most of what I know comes from reading [The Quest](https://www.amazon.com/Quest-Energy-Security-Remaking-Modern/dp/0143121944) by Daniel Yergin, a book that I highly recommend to anybody who is interested in the history of different energy sources and the geopolitical implications of energy.
 
-```{r load-jodi, echo=FALSE}
-jodi <- read.csv('world_Primary_CSV.csv')
-```
-
-```{r load-packages, message=FALSE}
+```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
 library(knitr)
 library(dplyr)
 library(ggplot2)
+library(xtable)
 ```
 
 ```{r set-fig-path, echo=FALSE}
@@ -57,7 +54,6 @@ group_by_year <- function(dataset) {
 
 One of the data fields is Product, which is divided in Crude Oil, Natural Gas Liquids (not to be confused with Natural Gas), Other Crude, and Total Crude, which acts as the sum of the prior three. For some reason Total Crude is missing from some years. 
 
-
 We are going to be using Crude Oil as a proxy for the total production. As the graph below shows this is a reasonable assumption since most of the production is crude oil, and it roughly follows the same pattern. In addition, we found that the reporting for Crude Oil has less missing entries (NA values) than Total Crude. 
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -80,7 +76,6 @@ ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
 In this section we are going to first look at the world prodution and then drill down at the country level.
 The goal is to give a good idea on who the top producers are and what were the recent changes and trends.
 
-
 The world production has mostly gone up in the past 10 years, with the exception of the Great Recession of 2008, which lowered production by first lowering demand. It was mostly flat between 2009 and 2011, and it picked up nicely afterwards.
 
 ```{r, echo=FALSE}
@@ -100,7 +95,6 @@ ggplot(by_year, aes(year, quantity)) +
 
 Three countries are definitely the top producers: Saudi Arabia, Russia, and the United States. To compete in the top three, a country has to be able to produce around 10 million barrels per day.
 
-
 Iraq, China, and Iran complete the top 5 across the last four years. Their output ranges between 3 and 5 million barrels per day.
 
 Recent four year trends that can be seen in the production table:
@@ -111,7 +105,7 @@ Recent four year trends that can be seen in the production table:
   <li>Nigeria's output has decreased by almost 20%</li>
 </ul>
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results="asis"}
 country_yearly_stats <- function(dataset, yearToFilter) {
   return(dataset %>%
     filter(year == yearToFilter) %>%
@@ -142,8 +136,11 @@ mega_table <- function(dataset, unit, divideBy) {
   with_2015 <- left_join(table2016, table2015, by = "country")
   with_2014 <- left_join(with_2015, table2014, by = "country")
   with_2013 <- left_join(with_2014, table2013, by = "country")
-
-  kable(with_2013[1:15,], caption = paste('Top 15 Crude Oil Producers (', unit, ')', sep = ""), col.names = c("Country", "2016", "2015", "2014", "2013"))
+  
+  kable(with_2013[1:15,],
+    caption = paste('Top 15 Crude Oil Producers (', unit, ')', sep = ""),
+    col.names = c("Country", "2016", "2015", "2014", "2013"),
+    format = 'html')
 }
 
 jodi_prod <- filter(jodi, flow == 'PRODREFOUT', product == 'CRUDEOIL', unit == 'KBBL')
@@ -167,7 +164,7 @@ ggplot(quantity_by_year_and_country, aes(year, quantity)) +
   scale_x_continuous(breaks = pretty(quantity_by_year_and_country$year, n = 10))
 ```
 
-# Individual Countries
+## Individual Countries
 
 ```{r, echo=FALSE}
 country_yearly_graph <- function(queryCountry) {
@@ -191,8 +188,6 @@ ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
     labels = c("Production", "Exports", "Imports"))
 }
 ```
-
-## Production, Imports, and Exports
 
 ### Saudi Arabia
 
