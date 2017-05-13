@@ -6,14 +6,14 @@ output:
 layout: post
 ---
 
-## Dataset
+## Introduction
 
-In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), an international organization that provides open data about oil and natural gas. JODI operated since its launch in 2001 with the participation of many countries, with an estimated coverage of about 90% world supply. 
+In this write up, we are going to explore data provided by the Joint Organisations Data Initiative (JODI), an international organization that provides open data about oil and natural gas. JODI operated since its launch in 2001 as a joint effort of many countries with an estimated coverage of more than 90% of the world supply. The [Participating Economies](https://www.jodidata.org/oil/participants/participating-economies.aspx) page lists the countries providing data to JODI. 
 
 The dataset used is the World Primary dataset, which can be downloaded from the [Data Downloads](https://www.jodidata.org/oil/database/data-downloads.aspx) page on the JODI website.
 The dataset contains data about Crude Oil, Natural Gas Liquids (NGL), and other primary sources (Other). The World Secondary dataset contains data about secondary products such as Gas/Diesel oil, Fuel oil, etc.
 
-Disclaimer: I am not an energy expert. Most of what I know comes from reading [The Quest](https://www.amazon.com/Quest-Energy-Security-Remaking-Modern/dp/0143121944) by Daniel Yergin, a book that I highly recommend to anybody who is interested in the history of different energy sources and the geopolitical implications of energy.
+Disclaimer: I am not an energy expert. Most of what I know comes from reading [The Quest](https://www.amazon.com/Quest-Energy-Security-Remaking-Modern/dp/0143121944) by Daniel Yergin, a book that I highly recommend to anybody who is interested in the history of all energy sources and the geopolitical implications of energy.
 
 ```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
@@ -29,7 +29,9 @@ opts_knit$set(base.dir = getwd(), base.url = '/')
 opts_chunk$set(fig.path = 'assets/jodi-oil/')
 ```
 
-The variables we are going to use are: country, date (year), quantity (in Thousands of Barrels Per Day), product, flow (Production, Imports, and Exports). As a preprocessing step, data about the current year (2017) was removed because it is (understandably) incomplete. Also, our generated graphs only show the last ten years so that they can fit nicely on the screen.
+## Dataset
+
+The variables we are going to use are: Country, Date (year), Quantity (in Thousands of Barrels Per Day), Product, Flow (Production, Imports, and Exports). As a preprocessing step, data for the current year (2017) was removed because we are comparing full years. Also, our graphs only show the last ten years so that they can fit nicely on the screen.
 
 ```{r, echo=FALSE}
 quantityLabel = 'Quantity (Thousands of Barrels per Day)'
@@ -50,14 +52,21 @@ group_by_year <- function(dataset) {
 }
 ```
 
-## Products
+### Products
 
-One of the data fields is Product, which is divided in Crude Oil, Natural Gas Liquids (not to be confused with Natural Gas), Other Crude, and Total Crude, which acts as the sum of the prior three. For some reason Total Crude is missing from some years. 
+One of the dimensions of the JODI data is Product. A description of the values can be found on the [JODI website](https://www.jodidata.org/oil/support/user-guide/data-available-in-the-jodi-oil-world-database.aspx). Here are the product descriptions:
 
-We are going to be using Crude Oil as a proxy for the total production. As the graph below shows this is a reasonable assumption since most of the production is crude oil, and it roughly follows the same pattern. In addition, we found that the reporting for Crude Oil has less missing entries (NA values) than Total Crude. 
+<ul>
+<li>Crude Oil: Including lease condensate - excluding NGL</li>
+<li>Natural Gas Liquids: Liquid or liquefied hydrocarbons recovered from gas separation plants and gas processing facilities</li>
+<li>Other: Refinery feedstocks + additives/oxygenates + other hydrocarbons</li>
+<li>Total: Sum of categories (1) to (3) Total = Crude oil + NGL + Other</li>
+</ul>
+
+Indeally we would use Total to compare production but there are a lot of missing datapoints (NA values) on anything that isn't crude oil. For this reason the graphs in the rest of this document are using the Crude Oil product. As the graph below shows this is a reasonable assumption since most of the production is crude oil, and it roughly follows the same pattern.
 
 ```{r, echo=FALSE, warning=FALSE}
-jodi_us <- filter(jodi, country == 'USA', unit == 'KBBL', flow == 'PRODREFOUT')
+jodi_us <- filter(jodi, country == 'USA' | country == 'RUSSIA' | country == 'SARABIA', unit == 'KBBL', flow == 'PRODREFOUT')
 
 jodi_us_prod_by_year <- jodi_us %>%
   group_by(year, product) %>%
@@ -66,17 +75,17 @@ jodi_us_prod_by_year <- jodi_us %>%
 
 ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
   geom_bar(aes(fill = product), position = "dodge", stat="identity") +
-  ggtitle(label = "US All Oil Products", subtitle = NULL) +
+  ggtitle(label = "Production by Oil Product (Top 3 Producers Combined)", subtitle = NULL) +
   labs(x = "Year", y = quantityLabel) +
   scale_x_continuous(breaks = pretty(jodi_us_prod_by_year$year, n = 10))
 ```
 
 ## World Production
 
-In this section we are going to first look at the world prodution and then drill down at the country level.
-The goal is to give a good idea on who the top producers are and what were the recent changes and trends.
+In this section we are going to first look at the world prodution and then drill down to the country level.
+The goal is to give an idea on who the top producers are and look at the recent changes and trends.
 
-The world production has mostly gone up in the past 10 years, with the exception of the Great Recession of 2008, which lowered production by first lowering demand. It was mostly flat between 2009 and 2011, and it picked up nicely afterwards.
+The world production has gone up in the past 10 years, with the exception of the Great Recession of 2008, which lowered production and demand. It was mostly flat between 2009 and 2011 and it picked up nicely afterwards.
 
 ```{r, echo=FALSE}
 jodi_prod_and_use <- filter(jodi, product == 'CRUDEOIL', flow == 'PRODREFOUT', unit == 'KBBL', !is.na(quantity))
@@ -96,14 +105,6 @@ ggplot(by_year, aes(year, quantity)) +
 Three countries are definitely the top producers: Saudi Arabia, Russia, and the United States. To compete in the top three, a country has to be able to produce around 10 million barrels per day.
 
 Iraq, China, and Iran complete the top 5 across the last four years. Their output ranges between 3 and 5 million barrels per day.
-
-Recent four year trends that can be seen in the production table:
-<ul>
-  <li>The United States has consistently increased production and is getting close to the top 2 (Saudi Arabia and Russia)</li>
-  <li>Iraq has increased production by about 50%, becoming a solid number four</li>
-  <li>Venezuela's output has decreased by about 10%</li>
-  <li>Nigeria's output has decreased by almost 20%</li>
-</ul>
 
 ```{r, echo=FALSE, results="asis"}
 country_yearly_stats <- function(dataset, yearToFilter) {
@@ -140,12 +141,23 @@ mega_table <- function(dataset, unit, divideBy) {
   kable(with_2013[1:15,],
     caption = paste('Top 15 Crude Oil Producers (', unit, ')', sep = ""),
     col.names = c("Country", "2016", "2015", "2014", "2013"),
-    format = 'html')
+    format = 'html',
+    table.attr = "class=\"table\"")
 }
 
 jodi_prod <- filter(jodi, flow == 'PRODREFOUT', product == 'CRUDEOIL', unit == 'KBBL')
 mega_table(jodi_prod, 'Thousands of Barrels Per Day (kbd)', 365)
 ```
+
+### Trends
+
+Recent four year trends that can be seen in the production table:
+<ul>
+  <li>The United States has consistently increased production and is getting close to the top 2 (Saudi Arabia and Russia)</li>
+  <li>Iraq has increased production by about 50%, becoming a solid number four</li>
+  <li>Venezuela's output has decreased by about 10%</li>
+  <li>Nigeria's output has decreased by almost 20%</li>
+</ul>
 
 If we only look at the three major producers, we can see that the United States has recovered a lot of ground in the last few years:
 
@@ -166,9 +178,9 @@ ggplot(quantity_by_year_and_country, aes(year, quantity)) +
 
 ## Individual Countries
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 country_yearly_graph <- function(queryCountry) {
-  jodi_prod <- filter(jodi, country == queryCountry,
+  jodi_prod <- filter(jodi, country == queryCountry, !is.na(quantity),
                        flow == 'PRODREFOUT' | flow == 'TOTEXPSB' | flow == 'TOTIMPSB',
                        product == 'CRUDEOIL', unit == 'KBBL')
 
@@ -191,7 +203,7 @@ ggplot(jodi_us_prod_by_year, aes(year, quantity)) +
 
 ### Saudi Arabia
 
-Saudi Arabia is the world top producer.
+Saudi Arabia is usually considered the world top producer, even though Russia comes pretty close and actually produces more than Saudi Arabia in some years. Because of its low consumption, mostly due to having a small population (31.54 million as of 2015), Saudi Arabia exports most (80%) of what it produces, making it a major player in the global markets. 
 
 ```{r, echo=FALSE}
 country_yearly_graph('SARABIA')
@@ -199,13 +211,17 @@ country_yearly_graph('SARABIA')
 
 ### Russia
 
-```{r, echo=FALSE}
+Russia produces as much as Saudi Arabia, and even more in some years. Russia has a larger population (144.1 million as of 2015) and a bigger consumption than Saudi Arabia. Russia is able to export about half of what it produces.
+
+```{r, echo=FALSE, warning=FALSE}
 country_yearly_graph('RUSSIA')
 ```
 
 ### United States
 
-The United States has seen a boom in oil production after 2010, which is commonly attributed to the technological advances in horizontal drilling and hydraulic fracturing. The graph also shows declining imports and rising exports, although they are still very small when compared to production and imports. 
+The production of the United States is close to the top 2, but it still has to import a significant amount of oil. Its large population (321.4 million as of 2015) and high consumption per capita makes the U.S. import the equivalent of one more top producer.
+
+The graph shows a boom in oil production after 2010, which is commonly attributed to the technological advances in horizontal drilling and hydraulic fracturing. The graph also shows declining imports and rising exports, although exports are still tiny when compared to production and imports.
 
 ```{r, echo=FALSE}
 country_yearly_graph('USA')
@@ -213,17 +229,15 @@ country_yearly_graph('USA')
 
 ### Iraq
 
+Iraq is an [OPEC](http://www.opec.org/opec_web/en/) member and has become the second OPEC producer after Saudi Arabia and the fourth in the world. Iraq doubled its oil production in the past ten years.
+
 ```{r, echo=FALSE}
 country_yearly_graph('IRAQ')
 ```
 
-### Brazil
-
-```{r, echo=FALSE}
-country_yearly_graph('BRAZIL')
-```
-
 ### Venezuela
+
+Venezuela is another OPEC member. Its economy is highly dependent on oil and is the classic example of a petro state. Its oil output has been decreasing by about 20% in the past few years.
 
 ```{r, echo=FALSE}
 country_yearly_graph('VENEZOPEC')
@@ -231,6 +245,17 @@ country_yearly_graph('VENEZOPEC')
 
 ### Nigeria
 
+Nigeria is another petro-state. It exports most of what it produces. Its output has also been decreasing in the past five years, but the ten year graph shows a bit more ups and downs.
+
 ```{r, echo=FALSE}
 country_yearly_graph('NIGERIA')
 ```
+
+### Brazil
+
+Brazil has mostly increased production in the past 10 years. It exports about a third of what it produces.
+
+```{r, echo=FALSE}
+country_yearly_graph('BRAZIL')
+```
+
