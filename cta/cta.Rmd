@@ -1,0 +1,132 @@
+---
+title: "CTA Ridership Figures Analyzed"
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+layout: post
+---
+
+## Introduction
+
+The Chicago Transit Authority (CTA) provides ridership data about ...
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(xtable)
+```
+
+
+```{r read-date, echo=FALSE}
+cta <- read.csv('CTA_-_Ridership_-__L__Station_Entries_-_Daily_Totals.csv')
+cta_stations <- read.csv('CTA_-_System_Information_-_List_of__L__Stops.csv')
+```
+
+```{r set-fig-path, echo=FALSE}
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/cta/')
+```
+
+```{r add-line, echo=FALSE}
+map_line <- function(booleans, name) {
+  to_string <- function(x) { return(ifelse(x == "true", paste(name, ""), "")) }
+  return(sapply(booleans, to_string))
+}
+
+extract_lines <- function(dataset) {
+  red <- map_line(dataset$RED, "Red")
+  blue <- map_line(dataset$BLUE, "Blue")
+  green <- map_line(dataset$G, "Green")
+  brown <- map_line(dataset$BRN, "Brown")
+  purple <- map_line(dataset$P, "Purple")
+  yellow <- map_line(dataset$Y, "Yellow")
+  pink <- map_line(dataset$Pnk, "Pink")
+  orange <- map_line(dataset$O, "Orange")
+  return(paste0(red, blue, green, brown, purple, yellow, pink, orange))
+}
+```
+
+```{r process-data, echo=FALSE}
+cta_stations <- cta_stations %>% group_by(MAP_ID) %>% do(head(., n = 1)) %>% ungroup()
+cta_stations <- cta_stations %>% mutate(line = extract_lines(.))
+cta <- inner_join(cta, cta_stations, by = c("station_id" = "MAP_ID"))
+```
+
+## Dataset
+
+The variables we are going to use are: 
+<ul>
+  <li>Station</li>
+  <li>Date</li>
+  <li>Day Type</li>
+  <li>Rides</li>
+  <li>Product</li>
+</ul>
+
+As a preprocessing step, data for the current year (2017) was removed because we are comparing full years. Also, our graphs only show the last ten years so that they can fit nicely on the screen.
+
+```{r, echo=FALSE}
+add_year <- function(dataset) {
+  return(dataset %>%
+    mutate(year = strtoi(substr(dataset$date, 7, 11))))
+}
+
+cta <- add_year(cta)
+cta_to_2016 <- cta %>% filter(year != 2017)
+
+group_by_year <- function(dataset) {
+  return(dataset %>%
+    group_by(year) %>%
+    summarise(rides = sum(rides)))
+}
+```
+
+```{r, echo=FALSE}
+
+sorted <- cta %>% 
+  arrange(desc(rides)) %>%
+  select(date, stationname, line, rides)
+kable(sorted[1:10,], 
+      caption = "Top 10 Daily Rides",
+      format = 'html',
+      table.attr = "class=\"table\"")
+```
+```{r, echo=FALSE}
+by_date <- cta %>% 
+  group_by(date) %>%
+  summarize(rides = sum(rides))
+
+sorted <- by_date %>% 
+  arrange(desc(rides))
+kable(sorted[1:10,], 
+      caption = "Top 10 Days",
+      format = 'html',
+      table.attr = "class=\"table\"")
+```
+```{r, echo=FALSE}
+by_station <- cta %>% 
+  group_by(stationname, line) %>%
+  summarize(rides = sum(rides))
+
+sorted <- by_station %>% 
+  arrange(desc(rides))
+kable(sorted[1:10,], 
+      caption = "Top 10 Stations",
+      format = 'html',
+      table.attr = "class=\"table\"")
+```
+`
+```{r, echo=FALSE}
+by_year <- cta %>% 
+  filter(year > 2000) %>%
+  group_by(year) %>%
+  summarize(rides = sum(rides))
+
+ggplot(by_year, aes(year, rides)) +
+  geom_bar(stat="identity") +
+  ggtitle(label = "Total Rides by Year", subtitle = NULL) +
+  labs(x = "Year", y = "Rides") +
+  scale_x_continuous(breaks = pretty(by_year$year, n = 10))
+```
