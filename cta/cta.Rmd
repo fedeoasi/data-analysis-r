@@ -1,5 +1,5 @@
 ---
-title: "CTA Ridership Figures Analyzed"
+title: 'CTA "L" Ridership Figures Analyzed'
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]
@@ -8,7 +8,9 @@ layout: post
 
 ## Introduction
 
-The Chicago Transit Authority (CTA) provides ridership data about ...
+The [Chicago Transit Authority](http://www.transitchicago.com/) (CTA) provides a lot of open data about its train system (also known as the "L") and its bus system through its [data portal](http://www.transitchicago.com/data/).
+
+We are going to look at the train ridership data.
 
 ```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
@@ -17,7 +19,6 @@ library(dplyr)
 library(ggplot2)
 library(xtable)
 ```
-
 
 ```{r read-date, echo=FALSE}
 cta <- read.csv('CTA_-_Ridership_-__L__Station_Entries_-_Daily_Totals.csv')
@@ -65,7 +66,7 @@ The variables we are going to use are:
   <li>Product</li>
 </ul>
 
-As a preprocessing step, data for the current year (2017) was removed because we are comparing full years. Also, our graphs only show the last ten years so that they can fit nicely on the screen.
+As a preprocessing step, data for the current year (2017) was removed because we are comparing full years.
 
 ```{r, echo=FALSE}
 add_year <- function(dataset) {
@@ -83,16 +84,38 @@ group_by_year <- function(dataset) {
 }
 ```
 
-```{r, echo=FALSE}
+## Ridership by Year
 
-sorted <- cta %>% 
-  arrange(desc(rides)) %>%
-  select(date, stationname, line, rides)
-kable(sorted[1:10,], 
-      caption = "Top 10 Daily Rides",
-      format = 'html',
-      table.attr = "class=\"table\"")
+```{r ridership-by-year, echo=FALSE}
+by_year <- cta %>% 
+  filter(year > 2000) %>%
+  group_by(year) %>%
+  summarize(rides = sum(rides))
+
+rides_for_year <- function(queryYear) {
+  return(subset(by_year, year == queryYear, select = rides)[[1]])
+}
+
+three_year_avg <- function(queryYear) {
+  return(mean(c(rides_for_year(queryYear), rides_for_year(queryYear - 1), rides_for_year(queryYear - 2))))
+}
 ```
+
+The CTA has seen increasing ridership in the past few years. Last year (2016) was unusually the lowest since 2011, but it could be just a temporary deviation from the upward trend. In the last 10 years, ridership has increased by `r ((three_year_avg(2016) / three_year_avg(2006)) - 1) * 100 `%.
+
+```{r ridership-by-year-graph, echo=FALSE}
+ggplot(by_year, aes(year, rides)) +
+  geom_bar(stat="identity") +
+  ggtitle(label = "Total Rides by Year", subtitle = NULL) +
+  labs(x = "Year", y = "Rides") +
+  scale_x_continuous(breaks = pretty(by_year$year, n = 10))
+```
+
+## Busiest Days
+
+Here are the all time busiest dates on the CTA. 
+
+<div markdown="0">
 ```{r, echo=FALSE}
 by_date <- cta %>% 
   group_by(date) %>%
@@ -105,6 +128,26 @@ kable(sorted[1:10,],
       format = 'html',
       table.attr = "class=\"table\"")
 ```
+</div>
+
+## Busiest Station Days
+
+<div markdown="0">
+```{r, echo=FALSE}
+
+sorted <- cta %>% 
+  arrange(desc(rides)) %>%
+  select(date, stationname, line, rides)
+kable(sorted[1:10,], 
+      caption = "Top 10 Daily Rides",
+      format = 'html',
+      table.attr = "class=\"table\"")
+```
+</div>
+
+## Busiest Stations
+
+<div>
 ```{r, echo=FALSE}
 by_station <- cta %>% 
   group_by(stationname, line) %>%
@@ -117,16 +160,19 @@ kable(sorted[1:10,],
       format = 'html',
       table.attr = "class=\"table\"")
 ```
-`
+</div>
+
+## Day Types
 ```{r, echo=FALSE}
-by_year <- cta %>% 
-  filter(year > 2000) %>%
-  group_by(year) %>%
+#TODO divide the weekdays by five to get an average
+data <- cta %>% 
+  group_by(daytype, year) %>%
   summarize(rides = sum(rides))
 
-ggplot(by_year, aes(year, rides)) +
-  geom_bar(stat="identity") +
-  ggtitle(label = "Total Rides by Year", subtitle = NULL) +
+ggplot(data, aes(year, rides)) +
+  geom_bar(aes(fill = daytype), position = "dodge", stat="identity") +
+  ggtitle(label = "Daytype Year", subtitle = NULL) +
   labs(x = "Year", y = "Rides") +
-  scale_x_continuous(breaks = pretty(by_year$year, n = 10))
+  scale_x_continuous(breaks = pretty(data$year, n = length(unique(data$year))))
 ```
+
