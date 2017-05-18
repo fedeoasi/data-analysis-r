@@ -10,7 +10,7 @@ layout: post
 
 The [Chicago Transit Authority](http://www.transitchicago.com/) (CTA) provides a lot of open data about its train system (also known as the "L") and its bus system through its [data portal](http://www.transitchicago.com/data/).
 
-We are going to look at the train ridership data.
+In this article we are going to look at the train ridership data.
 
 ```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
@@ -61,9 +61,8 @@ The variables we are going to use are:
 <ul>
   <li>Station</li>
   <li>Date</li>
-  <li>Day Type</li>
+  <li>Day Type: Week Day, Saturday, Sunday/Holiday</li>
   <li>Rides</li>
-  <li>Product</li>
 </ul>
 
 As a preprocessing step, data for the current year (2017) was removed because we are comparing full years.
@@ -101,7 +100,9 @@ three_year_avg <- function(queryYear) {
 }
 ```
 
-The CTA has seen increasing ridership in the past few years. Last year (2016) was unusually the lowest since 2011, but it could be just a temporary deviation from the upward trend. In the last 10 years, ridership has increased by `r ((three_year_avg(2016) / three_year_avg(2006)) - 1) * 100 `%.
+The CTA has seen increasing ridership in the past few years. Last year (2016) seems lower but we only have data up to November 2016, so we are still in time to get a new all time high. 
+
+In the last 10 years, ridership has increased by an impressive `r ((three_year_avg(2015) / three_year_avg(2006)) - 1) * 100 `%.
 
 ```{r ridership-by-year-graph, echo=FALSE}
 ggplot(by_year, aes(year, rides)) +
@@ -113,7 +114,7 @@ ggplot(by_year, aes(year, rides)) +
 
 ## Busiest Days
 
-Here are the all time busiest dates on the CTA. 
+In this section we are going look at the busiest days on the CTA. The numbers are aggregated over all the CTA stations in a given day.   
 
 <div markdown="0">
 ```{r, echo=FALSE}
@@ -130,7 +131,14 @@ kable(sorted[1:10,],
 ```
 </div>
 
+The busiest day ever is very recent (November 4th, 2016). It is the day of the [parade](https://en.wikipedia.org/wiki/Chicago_Cubs#2016:_World_Series_Champions) for the Chicago Cubs 
+World Series win, an historic event since it was their first win since 1908.
+
+It is pretty amazing how before the Cubs parade the top 9 was so close, ranging between 721k and 759k. November 4th, 2016 added about 200k rides on top of that. 
+
 ## Busiest Station Days
+
+This section is about finding out the top number of rides in a single station on a given day.
 
 <div markdown="0">
 ```{r, echo=FALSE}
@@ -145,7 +153,13 @@ kable(sorted[1:10,],
 ```
 </div>
 
+Six of the top 10 including the top 2 are at the Belmont stop of the Red line sometime in the last week of June. That is when the [Chicago Pride Parade](https://en.wikipedia.org/wiki/Chicago_Pride_Parade) happens in Lakeview.
+
+Other stations in the top 10 are Lake/State and Clark/Lake, which are normally very busy stations with a lot of transfer options. The third ever busiest station day was also during the Chicago Cubs parade. 
+
 ## Busiest Stations
+
+This is about finding out which stations had the most all time rides. 
 
 <div>
 ```{r, echo=FALSE}
@@ -162,7 +176,12 @@ kable(sorted[1:10,],
 ```
 </div>
 
+The top 2 (Clark/Lake and Lake/State) are downtown stations with a lot of transfer options. Most of the top 10 is on the Red line (7 statiions). O'Hare is the only station for the blue line and is 9th. 
+
 ## Day Types
+
+The CTA dataset also provides a day type field to distinguish between weekdays, Saturdays, and Sundays or Holidays.
+
 ```{r, echo=FALSE}
 #TODO divide the weekdays by five to get an average
 data <- cta %>% 
