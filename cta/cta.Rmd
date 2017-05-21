@@ -8,9 +8,9 @@ layout: post
 
 ## Introduction
 
-The [Chicago Transit Authority](http://www.transitchicago.com/) (CTA) provides a lot of open data about its train system (also known as the "L") and its bus system through its [data portal](http://www.transitchicago.com/data/).
+The [Chicago Transit Authority](http://www.transitchicago.com/) (CTA) provides open data about its public transportation system through its [data portal](http://www.transitchicago.com/data/).
 
-In this article we are going to look at the train ridership data.
+In this article we are going to look at the [ridership data](https://data.cityofchicago.org/Transportation/CTA-Ridership-L-Station-Entries-Daily-Totals/5neh-572f) for the CTA train system, also known as the [Chicago "L"](https://en.wikipedia.org/wiki/Chicago_%22L%22).
 
 ```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
@@ -18,6 +18,7 @@ library(knitr)
 library(dplyr)
 library(ggplot2)
 library(xtable)
+library(scales)
 ```
 
 ```{r read-date, echo=FALSE}
@@ -59,13 +60,14 @@ cta <- inner_join(cta, cta_stations, by = c("station_id" = "MAP_ID"))
 
 The variables we are going to use are: 
 <ul>
-  <li>Station</li>
+  <li>Station: a CTA train station</li>
   <li>Date</li>
-  <li>Day Type: Week Day, Saturday, Sunday/Holiday</li>
-  <li>Rides</li>
+  <li>Day Type: Weekday, Saturday, or Sunday/Holiday</li>
+  <li>Rides: ride count for a station on a day</li>
+  <li>Line: lines serviced at a station (a station might service multiple lines)</li>
 </ul>
 
-As a preprocessing step, data for the current year (2017) was removed because we are comparing full years.
+As a preprocessing step, data for the current year (2017) was removed because we are comparing full years with the exception of 2016 that contains data to the end of November.
 
 ```{r, echo=FALSE}
 add_year <- function(dataset) {
@@ -79,7 +81,7 @@ cta_to_2016 <- cta %>% filter(year != 2017)
 group_by_year <- function(dataset) {
   return(dataset %>%
     group_by(year) %>%
-    summarise(rides = sum(rides)))
+    summarise(rides = comma(sum(rides))))
 }
 ```
 
@@ -100,21 +102,22 @@ three_year_avg <- function(queryYear) {
 }
 ```
 
-The CTA has seen increasing ridership in the past few years. Last year (2016) seems lower but we only have data up to November 2016, so we are still in time to get a new all time high. 
+The CTA has seen an increase in train ridership in the past few years. Last year (2016) seems lower but we only have data up to November 2016, so there is still room to get a new all time high.
 
-In the last 10 years, ridership has increased by an impressive `r ((three_year_avg(2015) / three_year_avg(2006)) - 1) * 100 `%.
+In the last 10 years, ridership has increased by an impressive `r round(((three_year_avg(2015) / three_year_avg(2006)) - 1) * 100, 2) `%, which was calculated as the difference between the 2015 and 2006 three year averages.
 
 ```{r ridership-by-year-graph, echo=FALSE}
 ggplot(by_year, aes(year, rides)) +
-  geom_bar(stat="identity") +
+  geom_line(stat="identity") +
   ggtitle(label = "Total Rides by Year", subtitle = NULL) +
   labs(x = "Year", y = "Rides") +
-  scale_x_continuous(breaks = pretty(by_year$year, n = 10))
+  scale_x_continuous(breaks = pretty(by_year$year, n = 10)) +
+  scale_y_continuous(labels = comma)
 ```
 
 ## Busiest Days
 
-In this section we are going look at the busiest days on the CTA. The numbers are aggregated over all the CTA stations in a given day.   
+In this section we are going look at the busiest days on the CTA. The numbers are aggregated over all the CTA stations in a given day.
 
 <div markdown="0">
 ```{r, echo=FALSE}
@@ -124,17 +127,24 @@ by_date <- cta %>%
 
 sorted <- by_date %>% 
   arrange(desc(rides))
-kable(sorted[1:10,], 
+top_by_date <- sorted[1:10,] %>% mutate(rides = comma(rides))
+
+kable(top_by_date, 
       caption = "Top 10 Days",
+      col.names = c("Date", "Rides"),
       format = 'html',
       table.attr = "class=\"table\"")
 ```
 </div>
 
-The busiest day ever is very recent (November 4th, 2016). It is the day of the [parade](https://en.wikipedia.org/wiki/Chicago_Cubs#2016:_World_Series_Champions) for the Chicago Cubs 
-World Series win, an historic event since it was their first win since 1908.
+The busiest day ever is very recent (November 4th, 2016). It is the day of the [parade](https://en.wikipedia.org/wiki/Chicago_Cubs#2016:_World_Series_Champions) for the 
+[Chicago Cubs](https://en.wikipedia.org/wiki/Chicago_Cubs) World Series win, the first since 1908.
 
-It is pretty amazing how before the Cubs parade the top 9 was so close, ranging between 721k and 759k. November 4th, 2016 added about 200k rides on top of that. 
+The parade is an astonishing record considering that the rest of the top 10 was closely ranging between 721k and 759k. November 4th, 2016 added about 200k (almost 30%) rides on top of that.
+
+Other dates in the top 10 are game days for the Cubs: October 28th, 2016 (2nd busiest day) and October 7th, 2016 (8th busiest day).
+
+The top three is completed by July 3rd, 2008, the day when Chicago used to host its biggest fireworks show. Since 2010 that was discontinued and the main attraction became the Navy Pier fireworks on the July 4th.
 
 ## Busiest Station Days
 
@@ -146,20 +156,24 @@ This section is about finding out the top number of rides in a single station on
 sorted <- cta %>% 
   arrange(desc(rides)) %>%
   select(date, stationname, line, rides)
-kable(sorted[1:10,], 
+
+top_station_days <- sorted[1:10,] %>% mutate(rides = comma(rides))
+
+kable(top_station_days, 
       caption = "Top 10 Daily Rides",
+      col.names = c("Date", "Station", "Lines", "Rides"),
       format = 'html',
       table.attr = "class=\"table\"")
 ```
 </div>
 
-Six of the top 10 including the top 2 are at the Belmont stop of the Red line sometime in the last week of June. That is when the [Chicago Pride Parade](https://en.wikipedia.org/wiki/Chicago_Pride_Parade) happens in Lakeview.
+Six of the top ten (including the top two) are at the Belmont stop of the Red line sometime in the last week of June. That is when the [Chicago Pride Parade](https://en.wikipedia.org/wiki/Chicago_Pride_Parade) happens in Lakeview. Interestingly, this event dominates the single station day all time high but does not appear in the busiest days.
 
-Other stations in the top 10 are Lake/State and Clark/Lake, which are normally very busy stations with a lot of transfer options. The third ever busiest station day was also during the Chicago Cubs parade. 
+Once again we can see the Chicago Cubs parade (11/04/2016) appearing at the stations Lake/State and Clark/Lake, two downtown stations.
 
 ## Busiest Stations
 
-This is about finding out which stations had the most all time rides. 
+This is about finding out which stations have served the most all time rides. 
 
 <div>
 ```{r, echo=FALSE}
@@ -169,29 +183,45 @@ by_station <- cta %>%
 
 sorted <- by_station %>% 
   arrange(desc(rides))
-kable(sorted[1:10,], 
+
+top_by_station <- sorted[1:10,] %>% mutate(rides = comma(rides))
+kable(top_by_station, 
       caption = "Top 10 Stations",
+      col.names = c("Station", "Lines", "Rides"),
       format = 'html',
       table.attr = "class=\"table\"")
 ```
 </div>
 
-The top 2 (Clark/Lake and Lake/State) are downtown stations with a lot of transfer options. Most of the top 10 is on the Red line (7 statiions). O'Hare is the only station for the blue line and is 9th. 
+The top 2 (Clark/Lake and Lake/State) are downtown stations with a lot of transfer options.
+
+Seven out of the top 10 stations are on the Red line.
+
+O'Hare is the only station for the blue line and is 9th. 
 
 ## Day Types
 
-The CTA dataset also provides a day type field to distinguish between weekdays, Saturdays, and Sundays or Holidays.
+The CTA dataset also provides a day type field to distinguish between weekdays, Saturdays, and Sundays or holidays. The number of rides for the weekdays was divided by 5 because there are approximately five times as many weekdays as there are Saturdays or Sundays/Holidays.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #TODO divide the weekdays by five to get an average
-data <- cta %>% 
-  group_by(daytype, year) %>%
-  summarize(rides = sum(rides))
+ data <- cta %>% 
+   group_by(daytype, year) %>%
+   summarize(rides = sum(rides))
 
+data[data$daytype == 'W',]$rides <- data[data$daytype == 'W',]$rides / 5  
+  
 ggplot(data, aes(year, rides)) +
   geom_bar(aes(fill = daytype), position = "dodge", stat="identity") +
-  ggtitle(label = "Daytype Year", subtitle = NULL) +
+  ggtitle(label = "Rides by day type", subtitle = NULL) +
   labs(x = "Year", y = "Rides") +
-  scale_x_continuous(breaks = pretty(data$year, n = length(unique(data$year))))
+  scale_x_continuous(breaks = pretty(data$year, n = length(unique(data$year)))) +
+  scale_y_continuous(labels = comma) +
+  scale_fill_discrete(
+    name = "Day Type",
+    breaks = c("A", "U", "W"),
+    labels = c("Sunday/Holiday", "Saturday", "Week Day")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
+The graph shows that weekdays have more rides than Saturdays and Sundays almost by a factor of two.
