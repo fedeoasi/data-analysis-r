@@ -15,7 +15,6 @@ Formula 1 qualifying battles analyzed.
 library(knitr)
 library(dplyr)
 library(ggplot2)
-library(xtable)
 library(scales)
 library(rjson)
 library(purrr)
@@ -28,11 +27,11 @@ opts_chunk$set(fig.path = 'assets/f1-quali/')
 
 ```{r read-date, echo=FALSE}
 json_file <- function(driver, year) {
-  return(paste('data/', driver, '_', year, '.json', sep = ''))
+  paste('data/', driver, '_', year, '.json', sep = '')
 }
 
 or_na <- function(input) {
-  return(if(!is.null(input) && input != "") input else NA)
+  if(!is.null(input) && input != "") input else NA
 }
 
 quali_data_frame <- function(driver, year) {
@@ -40,19 +39,17 @@ quali_data_frame <- function(driver, year) {
   json <- fromJSON(json_string)
   l <- lapply(json$MRData$RaceTable$Races, function(x) { 
     q <- x$QualifyingResults[[1]]
-    return(c(x$Circuit$circuitId, strtoi(q$position), or_na(q$Q1), or_na(q$Q2), or_na(q$Q3)))
+    c(x$Circuit$circuitId, strtoi(q$position), or_na(q$Q1), or_na(q$Q2), or_na(q$Q3))
   })
   df <- setNames(do.call(rbind.data.frame, l), c("Circuit", "Position", "Q1", "Q2", "Q3"))
   df[,2] <- as.numeric(df[,2])
-  return(df)
+  df
 }
 ```
 
-# Hamilton vs Rosberg (2016)
-
 ```{r}
 to_seconds <- function(string) {
-  r <- if (!is.na(string)) {
+  if (!is.na(string)) {
     by_colon <- strsplit(string, split = ":")[[1]]
     min <- as.integer(by_colon[[1]])
     by_period <- strsplit(by_colon[[2]], split = "\\.")[[1]]
@@ -62,17 +59,11 @@ to_seconds <- function(string) {
   } else {
     string
   }
-  return(r)
 }
 ```
 
 
 ```{r}
-ham_2016 <- quali_data_frame('hamilton', 2016)
-ros_2016 <- quali_data_frame('rosberg', 2016)
-alo_2007 <- quali_data_frame('alonso', 2007)
-ham_2007 <- quali_data_frame('hamilton', 2007)
-
 compare_runs <- function(driver1, driver2, year) {
    q1 <- quali_data_frame(driver1, year)
    q2 <- quali_data_frame(driver2, year)
@@ -85,7 +76,7 @@ compare_runs <- function(driver1, driver2, year) {
 #compare_runs('alonso', 'button', 2016)
 
 q3_times <- function(df) {
-  return(as.character(df$Q3) %>% map(to_seconds) %>% as.numeric())
+  as.character(df$Q3) %>% map(to_seconds) %>% as.numeric()
 }
 
 gaps <- function(df1, df2) {
@@ -94,13 +85,15 @@ gaps <- function(df1, df2) {
   gaps <- q3_1 - q3_2 
   gaps <- gaps[!is.na(gaps)] # remove NAs
   gaps <- gaps[abs(gaps) < 2] # remove outliers (more than a two second gap)
-  return(gaps)
+  gaps
 }
+```
+
+# Hamilton vs Rosberg (2016)
+
+```{r}
+ham_2016 <- quali_data_frame('hamilton', 2016)
+ros_2016 <- quali_data_frame('rosberg', 2016)
 
 gaps(ham_2016, ros_2016)
-
-gaps(ham_2007, alo_2007)
-
-
-
 ```
