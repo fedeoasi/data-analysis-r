@@ -14,6 +14,12 @@ download_data 'button' '2016'
 download_data 'hamilton' '2016'
 download_data 'rosberg' '2016'
 
+download_data 'hamilton' '2015'
+download_data 'rosberg' '2015'
+
+download_data 'hamilton' '2014'
+download_data 'rosberg' '2014'
+
 download_data 'vettel' '2016'
 download_data 'raikkonen' '2016'
 
@@ -25,4 +31,12 @@ download_data 'hamilton' '2007'
 
 download_data 'alonso' '2010'
 download_data 'vettel' '2010'
+download_data 'webber' '2010'
+
+download_data 'alonso' '2011'
+download_data 'vettel' '2011'
+download_data 'webber' '2011'
+
+download_data 'alonso' '2012'
+download_data 'vettel' '2012'
 

@@ -64,17 +64,6 @@ to_seconds <- function(string) {
 
 
 ```{r}
-compare_runs <- function(driver1, driver2, year) {
-   q1 <- quali_data_frame(driver1, year)
-   q2 <- quali_data_frame(driver2, year)
-   d1 <- sum(q1$Position < q2$Position)
-   d2 <- sum(q1$Position > q2$Position)
-   head_to_head <- paste(driver1, ' vs ', driver2, ': ', d1, ' to ', d2, sep = '')
-   map_dbl(as.character(df$Q3), to_seconds)
-}
-
-#compare_runs('alonso', 'button', 2016)
-
 q3_times <- function(df) {
   as.character(df$Q3) %>% map(to_seconds) %>% as.numeric()
 }
@@ -87,13 +76,49 @@ gaps <- function(df1, df2) {
   gaps <- gaps[abs(gaps) < 2] # remove outliers (more than a two second gap)
   gaps
 }
+
+compare_runs <- function(driver1, driver2, year) {
+   q1 <- quali_data_frame(driver1, year)
+   q2 <- quali_data_frame(driver2, year)
+   g <- gaps(q1, q2)
+   d1 <- sum(q1$Position < q2$Position)
+   d2 <- sum(q1$Position > q2$Position)
+   head_to_head <- paste(driver1, ' vs ', driver2, ': ', d1, ' to ', d2, sep = '')
+   list(
+     driver1 = driver1,
+     driver2 = driver2,
+     gaps = g,
+     mean = mean(g),
+     stddev = sd(g),
+     head_to_head = head_to_head)
+}
+
+#compare_runs('alonso', 'button', 2016)
+
+
 ```
 
 # Hamilton vs Rosberg (2016)
 
 ```{r}
-ham_2016 <- quali_data_frame('hamilton', 2016)
-ros_2016 <- quali_data_frame('rosberg', 2016)
+gap_graph <- function(df) {
+  y <- df$gaps
+  x <- 1:length(y)
+  gap_df <- data.frame(x, y)
+  ggplot(gap_df, aes(x, y)) + geom_bar(stat = 'identity')
+}
 
-gaps(ham_2016, ros_2016)
+ham_vs_ros_2016 <- compare_runs('hamilton', 'rosberg', 2016)
+ham_vs_ros_2015 <- compare_runs('hamilton', 'rosberg', 2015)
+ham_vs_ros_2014 <- compare_runs('hamilton', 'rosberg', 2014)
+
+vet_vs_web_2010 <- compare_runs('vettel', 'webber', 2010)
+
+gap_graph(ham_vs_ros_2016)
+gap_graph(ham_vs_ros_2015)
+gap_graph(ham_vs_ros_2014)
+
+#compare_runs('vettel', 'alonso', 2010)
+#compare_runs('vettel', 'alonso', 2011)
+
 ```
