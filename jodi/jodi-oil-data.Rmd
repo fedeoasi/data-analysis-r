@@ -20,7 +20,6 @@ Disclaimer: I am not an energy expert. Most of what I know comes from reading [T
 library(knitr)
 library(dplyr)
 library(ggplot2)
-library(xtable)
 ```
 
 ```{r set-fig-path, echo=FALSE}

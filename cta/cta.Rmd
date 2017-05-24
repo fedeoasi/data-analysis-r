@@ -17,7 +17,6 @@ In this article we are going to look at the [ridership data](https://data.cityof
 library(knitr)
 library(dplyr)
 library(ggplot2)
-library(xtable)
 library(scales)
 ```
 
