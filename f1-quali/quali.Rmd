@@ -25,7 +25,7 @@ opts_knit$set(base.dir = getwd(), base.url = '/')
 opts_chunk$set(fig.path = 'assets/f1-quali/')
 ```
 
-```{r read-date, echo=FALSE}
+```{r read-date, echo=FALSE, warning=FALSE}
 json_file <- function(driver, year) {
   paste('data/', driver, '_', year, '.json', sep = '')
 }
@@ -39,15 +39,20 @@ quali_data_frame <- function(driver, year) {
   json <- fromJSON(json_string)
   l <- lapply(json$MRData$RaceTable$Races, function(x) { 
     q <- x$QualifyingResults[[1]]
-    c(x$Circuit$circuitId, strtoi(q$position), or_na(q$Q1), or_na(q$Q2), or_na(q$Q3))
+    c(x$Circuit$circuitId,
+      x$Circuit$Location$country,
+      as.numeric(q$position),
+      or_na(q$Q1),
+      or_na(q$Q2),
+      or_na(q$Q3))
   })
-  df <- setNames(do.call(rbind.data.frame, l), c("Circuit", "Position", "Q1", "Q2", "Q3"))
-  df[,2] <- as.numeric(df[,2])
+  df <- setNames(do.call(rbind.data.frame, l), c("Circuit", "Race", "Position", "Q1", "Q2", "Q3"))
+  df[, 3] <- as.numeric(as.character(df[, 3]))
   df
 }
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 to_seconds <- function(string) {
   if (!is.na(string)) {
     by_colon <- strsplit(string, split = ":")[[1]]
@@ -63,18 +68,20 @@ to_seconds <- function(string) {
 ```
 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 q3_times <- function(df) {
-  as.character(df$Q3) %>% map(to_seconds) %>% as.numeric()
+  times <- as.character(df$Q3) %>% map(to_seconds) %>% as.numeric()
+  setNames(times, df$Race)
 }
 
 gaps <- function(df1, df2) {
   q3_1 <- q3_times(df1)
   q3_2 <- q3_times(df2)
-  gaps <- q3_1 - q3_2 
+  gaps <- q3_1 - q3_2 # TODO test case when races are not aligned
+  removed <- gaps[is.na(gaps)]
   gaps <- gaps[!is.na(gaps)] # remove NAs
   gaps <- gaps[abs(gaps) < 2] # remove outliers (more than a two second gap)
-  gaps
+  list(gaps = gaps, removed = removed)
 }
 
 compare_runs <- function(driver1, driver2, year) {
@@ -87,10 +94,11 @@ compare_runs <- function(driver1, driver2, year) {
    list(
      driver1 = driver1,
      driver2 = driver2,
-     gaps = g,
-     mean = mean(g),
-     stddev = sd(g),
-     head_to_head = head_to_head)
+     gaps = g$gaps,
+     mean = mean(g$gaps),
+     stddev = sd(g$gaps),
+     head_to_head = head_to_head,
+     removed = names(g$removed))
 }
 
 #compare_runs('alonso', 'button', 2016)
@@ -98,27 +106,39 @@ compare_runs <- function(driver1, driver2, year) {
 
 ```
 
-# Hamilton vs Rosberg (2016)
-
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 gap_graph <- function(df) {
   y <- df$gaps
-  x <- 1:length(y)
+  x <- names(unlist(df$gaps))
   gap_df <- data.frame(x, y)
-  ggplot(gap_df, aes(x, y)) + geom_bar(stat = 'identity')
+  ggplot(gap_df, aes(x, y)) + geom_bar(stat = 'identity') +
+    labs(x = "Race", y = "Gap") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 }
+```
 
+# Hamilton vs Rosberg (2016)
+
+```{r, echo=FALSE, warning=FALSE}
 ham_vs_ros_2016 <- compare_runs('hamilton', 'rosberg', 2016)
-ham_vs_ros_2015 <- compare_runs('hamilton', 'rosberg', 2015)
-ham_vs_ros_2014 <- compare_runs('hamilton', 'rosberg', 2014)
-
-vet_vs_web_2010 <- compare_runs('vettel', 'webber', 2010)
-
 gap_graph(ham_vs_ros_2016)
-gap_graph(ham_vs_ros_2015)
-gap_graph(ham_vs_ros_2014)
+ham_vs_ros_2016
+```
 
-#compare_runs('vettel', 'alonso', 2010)
-#compare_runs('vettel', 'alonso', 2011)
+# Hamilton vs Rosberg (2015)
+
+```{r, echo=FALSE, warning=FALSE}
+ham_vs_ros_2015 <- compare_runs('hamilton', 'rosberg', 2015)
+gap_graph(ham_vs_ros_2015)
+ham_vs_ros_2015
+```
+
+# Vettel vs Alonso (2010)
+
+```{r, echo=FALSE, warning=FALSE}
+vet_vs_alo_2010 <- compare_runs('vettel', 'alonso', 2010)
+gap_graph(vet_vs_alo_2010)
+vet_vs_alo_2010
+```
 
 ```
