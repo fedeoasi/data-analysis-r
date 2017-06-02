@@ -40,3 +40,5 @@ download_data 'webber' '2011'
 download_data 'alonso' '2012'
 download_data 'vettel' '2012'
 
+download_data 'alonso' '2013'
+download_data 'vettel' '2013'

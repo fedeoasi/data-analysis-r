@@ -8,7 +8,15 @@ layout: post
 
 ## Introduction
 
-Formula 1 qualifying battles analyzed.
+This post is about evaluating the qualifying battles between the two drivers who scored the most points in a given year. The years covered are from 2010 to 2016. This time frame covers the Red Bull era (2010 to 2013) and the Mercedes era (2014 to 2016). The most significant battles have been between Vettel and Alonso, and between Hamilton and Rosberg.
+
+## Method
+
+The most commonly used statistics when evaluating head to head qualifying battles is the simple count of how many times a driver outperformed the other. While this gives a pretty good idea of who was faster, there is a lot of hidden information in the gaps and in outliers such as engine failures, which I will be trying to expose in this write up.
+
+We will be looking at bar charts showing the race by race gaps between two drivers and characterize the gap distribution. We will then try to establish a relationship between qualifying performance and championship points.
+
+in order to evaluate the gaps fairly we have to remove outliers. We consider outliers circumstances when one of the two drivers does not make into Q3. It is safe to assume that a driver fighting for the championship will be in Q3 unless something really unexpected happens. We also remove gaps above two seconds because they are usually due to an interrupted lap or a mechanical failure.
 
 ```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
@@ -78,7 +86,7 @@ gaps <- function(df1, df2) {
   q3_1 <- q3_times(df1)
   q3_2 <- q3_times(df2)
   gaps <- q3_1 - q3_2 # TODO test case when races are not aligned
-  removed <- gaps[is.na(gaps)]
+  removed <- gaps[is.na(gaps) | gaps >= 2]
   gaps <- gaps[!is.na(gaps)] # remove NAs
   gaps <- gaps[abs(gaps) < 2] # remove outliers (more than a two second gap)
   list(gaps = gaps, removed = removed)
@@ -90,7 +98,10 @@ compare_runs <- function(driver1, driver2, year) {
    g <- gaps(q1, q2)
    d1 <- sum(q1$Position < q2$Position)
    d2 <- sum(q1$Position > q2$Position)
+   d1_wins <- sum(g$gaps < 0)
+   d2_wins <- sum(g$gaps > 0)
    head_to_head <- paste(driver1, ' vs ', driver2, ': ', d1, ' to ', d2, sep = '')
+   head_to_head_without_outliers <- paste(driver1, ' vs ', driver2, ': ', d1_wins, ' to ', d2_wins, sep = '')
    list(
      driver1 = driver1,
      driver2 = driver2,
@@ -98,6 +109,7 @@ compare_runs <- function(driver1, driver2, year) {
      mean = mean(g$gaps),
      stddev = sd(g$gaps),
      head_to_head = head_to_head,
+     head_to_head_without_outliers = head_to_head_without_outliers,
      removed = names(g$removed))
 }
 
@@ -111,6 +123,7 @@ gap_graph <- function(df) {
   y <- df$gaps
   x <- names(unlist(df$gaps))
   gap_df <- data.frame(x, y)
+  gap_df$x <- factor(gap_df$x, levels = unique(gap_df$x))
   ggplot(gap_df, aes(x, y)) + geom_bar(stat = 'identity') +
     labs(x = "Race", y = "Gap") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -119,26 +132,133 @@ gap_graph <- function(df) {
 
 # Hamilton vs Rosberg (2016)
 
+This is a battle between the two Mercedes team mates.
+
+
+
 ```{r, echo=FALSE, warning=FALSE}
 ham_vs_ros_2016 <- compare_runs('hamilton', 'rosberg', 2016)
-gap_graph(ham_vs_ros_2016)
-ham_vs_ros_2016
 ```
+
+```{r, echo=FALSE, warning=FALSE}
+gap_graph(ham_vs_ros_2016)
+```
+
+Head to Head: ```r ham_vs_ros_2016$head_to_head```
+
+Head to Head without outliers: ```r ham_vs_ros_2016$head_to_head_without_outliers```
+
+Omitted from gaps calculations: ```r ham_vs_ros_2016$removed```
+
+Average gap: ```r ham_vs_ros_2016$mean```
+
+Standard deviation: ```r ham_vs_ros_2016$stddev```
+
 
 # Hamilton vs Rosberg (2015)
 
 ```{r, echo=FALSE, warning=FALSE}
 ham_vs_ros_2015 <- compare_runs('hamilton', 'rosberg', 2015)
 gap_graph(ham_vs_ros_2015)
-ham_vs_ros_2015
 ```
+
+Head to Head: ```r ham_vs_ros_2015$head_to_head```
+
+Omitted from gaps calculations: ```r ham_vs_ros_2015$removed```
+
+Average gap: ```r ham_vs_ros_2015$mean```
+
+Standard deviation: ```r ham_vs_ros_2015$stddev```
+
+# Hamilton vs Rosberg (2014)
+
+```{r, echo=FALSE, warning=FALSE}
+ham_vs_ros_2014 <- compare_runs('hamilton', 'rosberg', 2014)
+gap_graph(ham_vs_ros_2014)
+```
+
+Head to Head: ```r ham_vs_ros_2014$head_to_head```
+
+Omitted from gaps calculations: ```r ham_vs_ros_2014$removed```
+
+Average gap: ```r ham_vs_ros_2014$mean```
+
+Standard deviation: ```r ham_vs_ros_2014$stddev```
+
+# Vettel vs Alonso (2013)
+
+```{r, echo=FALSE, warning=FALSE}
+vet_vs_alo_2013 <- compare_runs('vettel', 'alonso', 2013)
+gap_graph(vet_vs_alo_2013)
+```
+
+Head to Head: ```r vet_vs_alo_2013$head_to_head```
+
+Omitted from gaps calculations: ```r vet_vs_alo_2013$removed```
+
+Average gap: ```r vet_vs_alo_2013$mean```
+
+Standard deviation: ```r vet_vs_alo_2013$stddev```
+
+
+# Vettel vs Alonso (2012)
+
+```{r, echo=FALSE, warning=FALSE}
+vet_vs_alo_2012 <- compare_runs('vettel', 'alonso', 2012)
+gap_graph(vet_vs_alo_2012)
+```
+
+Head to Head: ```r vet_vs_alo_2012$head_to_head```
+
+Omitted from gaps calculations: ```r vet_vs_alo_2012$removed```
+
+Average gap: ```r vet_vs_alo_2012$mean```
+
+Standard deviation: ```r vet_vs_alo_2012$stddev```
+
+# Vettel vs Alonso (2011)
+
+```{r, echo=FALSE, warning=FALSE}
+vet_vs_alo_2011 <- compare_runs('vettel', 'alonso', 2011)
+gap_graph(vet_vs_alo_2011)
+```
+
+Head to Head: ```r vet_vs_alo_2011$head_to_head```
+
+Omitted from gaps calculations: ```r vet_vs_alo_2011$removed```
+
+Average gap: ```r vet_vs_alo_2011$mean```
+
+Standard deviation: ```r vet_vs_alo_2011$stddev```
 
 # Vettel vs Alonso (2010)
 
 ```{r, echo=FALSE, warning=FALSE}
 vet_vs_alo_2010 <- compare_runs('vettel', 'alonso', 2010)
 gap_graph(vet_vs_alo_2010)
-vet_vs_alo_2010
 ```
 
+Head to Head: ```r vet_vs_alo_2010$head_to_head```
+
+Omitted from gaps calculations: ```r vet_vs_alo_2010$removed```
+
+Average gap: ```r vet_vs_alo_2010$mean```
+
+Standard deviation: ```r vet_vs_alo_2010$stddev```
+
+# All Together
+
+<div markdown="0">
+```{r echo=FALSE}
+df <- data.frame(
+  year = c("2016", "2015"),
+  drivers = c(ham_vs_ros_2016$driver1, ham_vs_ros_2015$driver1),
+  avg = c(ham_vs_ros_2016$mean, ham_vs_ros_2015$mean),
+  stddev = c(ham_vs_ros_2016$stddev, ham_vs_ros_2015$stddev))
+kable(df, 
+      caption = "Top 10 Days",
+      col.names = c("Year", "Drivers", "Average Gap", "Std Dev"),
+      format = 'html',
+      table.attr = "class=\"table\"")
 ```
+</div>
