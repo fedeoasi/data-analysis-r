@@ -8,13 +8,13 @@ layout: post
 
 ## Introduction
 
-This post is about evaluating the qualifying battles between the two drivers who scored the most points in a given year. The years covered are from 2010 to 2016. This time frame covers the Red Bull era (2010 to 2013) and the Mercedes era (2014 to 2016). The most significant battles have been between Vettel and Alonso, and between Hamilton and Rosberg.
+This post is about evaluating the qualifying battles between Lewis Hamilton and Nico Rosberg, drivers who dominated the seasons from 2014 to 2016.
 
 ## Method
 
-The most commonly used statistics when evaluating head to head qualifying battles is the simple count of how many times a driver outperformed the other. While this gives a pretty good idea of who was faster, there is a lot of hidden information in the gaps and in outliers such as engine failures, which I will be trying to expose in this write up.
+The most commonly used statistics when evaluating head to head qualifying battles is the simple count of how many times a driver outperformed the other. While this gives a pretty good idea of who was faster, more information is hidden in the gaps and outliers such as engine failures.
 
-We will be looking at bar charts showing the race by race gaps between two drivers and characterize the gap distribution. We will then try to establish a relationship between qualifying performance and championship points.
+We will be looking at bar charts showing the race by race gaps between two drivers and characterize the gap distribution.
 
 in order to evaluate the gaps fairly we have to remove outliers. We consider outliers circumstances when one of the two drivers does not make into Q3. It is safe to assume that a driver fighting for the championship will be in Q3 unless something really unexpected happens. We also remove gaps above two seconds because they are usually due to an interrupted lap or a mechanical failure.
 
@@ -82,6 +82,11 @@ q3_times <- function(df) {
   setNames(times, df$Race)
 }
 
+quali_times <- function(df) {
+  times <- as.character(df$Q3) %>% map(to_seconds) %>% as.numeric()
+  setNames(times, df$Race)
+}
+
 gaps <- function(df1, df2) {
   q3_1 <- q3_times(df1)
   q3_2 <- q3_times(df2)
@@ -100,8 +105,8 @@ compare_runs <- function(driver1, driver2, year) {
    d2 <- sum(q1$Position > q2$Position)
    d1_wins <- sum(g$gaps < 0)
    d2_wins <- sum(g$gaps > 0)
-   head_to_head <- paste(driver1, ' vs ', driver2, ': ', d1, ' to ', d2, sep = '')
-   head_to_head_without_outliers <- paste(driver1, ' vs ', driver2, ': ', d1_wins, ' to ', d2_wins, sep = '')
+   head_to_head <- paste(d1, ' to ', d2, sep = '')
+   head_to_head_without_outliers <- paste(d1_wins, ' to ', d2_wins, sep = '')
    list(
      driver1 = driver1,
      driver2 = driver2,
@@ -132,10 +137,6 @@ gap_graph <- function(df) {
 
 # Hamilton vs Rosberg (2016)
 
-This is a battle between the two Mercedes team mates.
-
-
-
 ```{r, echo=FALSE, warning=FALSE}
 ham_vs_ros_2016 <- compare_runs('hamilton', 'rosberg', 2016)
 ```
@@ -144,16 +145,28 @@ ham_vs_ros_2016 <- compare_runs('hamilton', 'rosberg', 2016)
 gap_graph(ham_vs_ros_2016)
 ```
 
-Head to Head: ```r ham_vs_ros_2016$head_to_head```
+## Head to Head
 
-Head to Head without outliers: ```r ham_vs_ros_2016$head_to_head_without_outliers```
+The overall head to head saw Hamilton edging out Rosberg: ```r ham_vs_ros_2016$head_to_head```. After removing outliers, the head to head turns more into Hamilton's favor: ```r ham_vs_ros_2016$head_to_head_without_outliers```
+
+## Outliers
 
 Omitted from gaps calculations: ```r ham_vs_ros_2016$removed```
 
-Average gap: ```r ham_vs_ros_2016$mean```
+* China: A hybrid system failure in the turbo charger prevented Hamilton from setting a time in qualifying
+* Russia: The same mechanical failure as in China prevented Hamilton from competing in Q3
+* Azerbaijan: Hamilton crashed in Q3 before setting a quick lap time. While this is Hamilton's fault and deserves
+to be counted as a Rosberg win, it doesn't make sense to use the gap and we consider it an outlier.
+* Belgium: Hamilton took a penalty for changing the engine and did not participate in Q2 and Q3.
 
+Three of the outliers are mechanical failures on Hamilton's car, while the remaining one is a very unusual crash in Q3 from Hamilton.
+
+## Gap Distribution
+
+Average gap: ```r ham_vs_ros_2016$mean```
 Standard deviation: ```r ham_vs_ros_2016$stddev```
 
+Hamilton was on average a bit over a tenth faster than Rosberg. When Rosberg was faster, he was usually by a very small margin except for Singapore, where we saw the biggest margin between the two drivers (over 0.7s).
 
 # Hamilton vs Rosberg (2015)
 
@@ -162,13 +175,24 @@ ham_vs_ros_2015 <- compare_runs('hamilton', 'rosberg', 2015)
 gap_graph(ham_vs_ros_2015)
 ```
 
-Head to Head: ```r ham_vs_ros_2015$head_to_head```
+## Head to Head
+
+The overall head to head saw Hamilton edging out Rosberg: ```r ham_vs_ros_2015$head_to_head```. After removing outliers, the gap between the two drivers is wider: ```r ham_vs_ros_2015$head_to_head_without_outliers```.
+
+This result ius very similar to the 2016 season. Also to be noted that Rosberg only outqualified Hamilton once in the first thirteen races, and then outqualified Hamilton every single time to the end of the season.
+
+## Outliers
 
 Omitted from gaps calculations: ```r ham_vs_ros_2015$removed```
 
-Average gap: ```r ham_vs_ros_2015$mean```
+-- TODO use Q2 results
 
+## Gap Distribution
+
+Average gap: ```r ham_vs_ros_2015$mean```
 Standard deviation: ```r ham_vs_ros_2015$stddev```
+
+Hamilton was on average a bit over a tenth faster than Rosberg, a result very close to 2016.
 
 # Hamilton vs Rosberg (2014)
 
@@ -177,86 +201,41 @@ ham_vs_ros_2014 <- compare_runs('hamilton', 'rosberg', 2014)
 gap_graph(ham_vs_ros_2014)
 ```
 
-Head to Head: ```r ham_vs_ros_2014$head_to_head```
+## Head to Head
+
+The overall head to head this time saw Hamilton being edged out by Rosberg: ```r ham_vs_ros_2014$head_to_head```. After removing outliers, the result does not change but it is definitely closer: ```r ham_vs_ros_2014$head_to_head_without_outliers```.
+
+## Outliers
 
 Omitted from gaps calculations: ```r ham_vs_ros_2014$removed```
 
-Average gap: ```r ham_vs_ros_2014$mean```
+* Austria: Hamilton spun on his second Q3 lap after his first lap was deleted because he exceeded the track limits
+* United Kingdom: Q3 was a wet session. Hamilton set his time too early and the gap between Rosberg and Hamilton was over two seconds
+* Germany: Hamilton crashed in Q1 due to a brake disc failure
+* Hungary: Hamilton's car caught fire during qualifying
 
+## Gap Distribution
+
+Average gap: ```r ham_vs_ros_2014$mean```
 Standard deviation: ```r ham_vs_ros_2014$stddev```
 
-# Vettel vs Alonso (2013)
-
-```{r, echo=FALSE, warning=FALSE}
-vet_vs_alo_2013 <- compare_runs('vettel', 'alonso', 2013)
-gap_graph(vet_vs_alo_2013)
-```
-
-Head to Head: ```r vet_vs_alo_2013$head_to_head```
-
-Omitted from gaps calculations: ```r vet_vs_alo_2013$removed```
-
-Average gap: ```r vet_vs_alo_2013$mean```
-
-Standard deviation: ```r vet_vs_alo_2013$stddev```
-
-
-# Vettel vs Alonso (2012)
-
-```{r, echo=FALSE, warning=FALSE}
-vet_vs_alo_2012 <- compare_runs('vettel', 'alonso', 2012)
-gap_graph(vet_vs_alo_2012)
-```
-
-Head to Head: ```r vet_vs_alo_2012$head_to_head```
-
-Omitted from gaps calculations: ```r vet_vs_alo_2012$removed```
-
-Average gap: ```r vet_vs_alo_2012$mean```
-
-Standard deviation: ```r vet_vs_alo_2012$stddev```
-
-# Vettel vs Alonso (2011)
-
-```{r, echo=FALSE, warning=FALSE}
-vet_vs_alo_2011 <- compare_runs('vettel', 'alonso', 2011)
-gap_graph(vet_vs_alo_2011)
-```
-
-Head to Head: ```r vet_vs_alo_2011$head_to_head```
-
-Omitted from gaps calculations: ```r vet_vs_alo_2011$removed```
-
-Average gap: ```r vet_vs_alo_2011$mean```
-
-Standard deviation: ```r vet_vs_alo_2011$stddev```
-
-# Vettel vs Alonso (2010)
-
-```{r, echo=FALSE, warning=FALSE}
-vet_vs_alo_2010 <- compare_runs('vettel', 'alonso', 2010)
-gap_graph(vet_vs_alo_2010)
-```
-
-Head to Head: ```r vet_vs_alo_2010$head_to_head```
-
-Omitted from gaps calculations: ```r vet_vs_alo_2010$removed```
-
-Average gap: ```r vet_vs_alo_2010$mean```
-
-Standard deviation: ```r vet_vs_alo_2010$stddev```
+Hamilton was on average a bit over a tenth faster than Rosberg, a result very close to 2016.
 
 # All Together
 
 <div markdown="0">
 ```{r echo=FALSE}
+battles <- list(
+  b2016 = ham_vs_ros_2016,
+  b2015 = ham_vs_ros_2015,
+  b2014 = ham_vs_ros_2014)
+
 df <- data.frame(
-  year = c("2016", "2015"),
-  drivers = c(ham_vs_ros_2016$driver1, ham_vs_ros_2015$driver1),
-  avg = c(ham_vs_ros_2016$mean, ham_vs_ros_2015$mean),
-  stddev = c(ham_vs_ros_2016$stddev, ham_vs_ros_2015$stddev))
+  year = c("2016", "2015", "2014"),
+  drivers = unlist(map(battles, function(x) x$driver1)),
+  avg = unlist(map(battles, function(x) x$mean)),
+  stddev = unlist(map(battles, function(x) x$stddev)))
 kable(df, 
-      caption = "Top 10 Days",
       col.names = c("Year", "Drivers", "Average Gap", "Std Dev"),
       format = 'html',
       table.attr = "class=\"table\"")
