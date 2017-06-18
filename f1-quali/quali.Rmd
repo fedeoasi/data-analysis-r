@@ -1,5 +1,5 @@
 ---
-title: 'Formula 1 Qualifying Battles'
+title: 'Formula One Qualifying Battles: Hamilton vs Rosberg'
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]
@@ -8,7 +8,14 @@ layout: post
 
 ## Introduction
 
-This post is about evaluating the qualifying battles between Lewis Hamilton and Nico Rosberg, drivers who dominated the seasons from 2014 to 2016.
+This post is about evaluating the qualifying battles between Lewis Hamilton and Nico Rosberg, drivers who dominated the Formula One seasons from 2014 to 2016.
+
+The two Mercedes drivers were able to be on pole 18 times in 2014, 18 times in 2015, and 20 times in 2016.
+Between 2014 and 2016, there were only three races (out of 56) where the Mercedes team did not get pole position:
+
+* Austria 2014: Massa on Williams
+* Singapore 2015: Vettel on Ferrari
+* Monaco 2016: Ricciardo on Red Bull
 
 ## Method
 
@@ -16,7 +23,7 @@ The most commonly used statistics when evaluating head to head qualifying battle
 
 We will be looking at bar charts showing the race by race gaps between two drivers and characterize the gap distribution.
 
-in order to evaluate the gaps fairly we have to remove outliers. We consider outliers circumstances when one of the two drivers does not make into Q3. It is safe to assume that a driver fighting for the championship will be in Q3 unless something really unexpected happens. We also remove gaps above two seconds because they are usually due to an interrupted lap or a mechanical failure.
+in order to evaluate the gaps fairly we have to remove outliers. We consider outliers circumstances when one of the two drivers does not make into Q3. It is safe to assume that a driver fighting for the championship will be in Q3 unless something really unexpected happens. We also remove gaps above one second because they are usually due to mechanical issues. All the outliers will be described.
 
 ```{r load-packages, message=FALSE, echo=FALSE}
 #The analysis that follows was performed using R with the following libraries:
@@ -91,9 +98,9 @@ gaps <- function(df1, df2) {
   q3_1 <- q3_times(df1)
   q3_2 <- q3_times(df2)
   gaps <- q3_1 - q3_2 # TODO test case when races are not aligned
-  removed <- gaps[is.na(gaps) | gaps >= 2]
+  removed <- gaps[is.na(gaps) | gaps >= 1 | gaps <= -1]
   gaps <- gaps[!is.na(gaps)] # remove NAs
-  gaps <- gaps[abs(gaps) < 2] # remove outliers (more than a two second gap)
+  gaps <- gaps[abs(gaps) < 1] # remove outliers (more than a one second gap)
   list(gaps = gaps, removed = removed)
 }
 
@@ -141,13 +148,11 @@ gap_graph <- function(df) {
 ham_vs_ros_2016 <- compare_runs('hamilton', 'rosberg', 2016)
 ```
 
+The overall head to head saw Hamilton edging out Rosberg: ```r ham_vs_ros_2016$head_to_head```. After removing outliers, the head to head turns more into Hamilton's favor: ```r ham_vs_ros_2016$head_to_head_without_outliers```
+
 ```{r, echo=FALSE, warning=FALSE}
 gap_graph(ham_vs_ros_2016)
 ```
-
-## Head to Head
-
-The overall head to head saw Hamilton edging out Rosberg: ```r ham_vs_ros_2016$head_to_head```. After removing outliers, the head to head turns more into Hamilton's favor: ```r ham_vs_ros_2016$head_to_head_without_outliers```
 
 ## Outliers
 
@@ -155,8 +160,7 @@ Omitted from gaps calculations: ```r ham_vs_ros_2016$removed```
 
 * China: A hybrid system failure in the turbo charger prevented Hamilton from setting a time in qualifying
 * Russia: The same mechanical failure as in China prevented Hamilton from competing in Q3
-* Azerbaijan: Hamilton crashed in Q3 before setting a quick lap time. While this is Hamilton's fault and deserves
-to be counted as a Rosberg win, it doesn't make sense to use the gap and we consider it an outlier.
+* Azerbaijan: Hamilton crashed in Q3 before setting a quick lap time. While this is a case of driver mistake and should be counted as a Rosberg win, we consider it an outlier because the gap is too big and would skew the statistics.
 * Belgium: Hamilton took a penalty for changing the engine and did not participate in Q2 and Q3.
 
 Three of the outliers are mechanical failures on Hamilton's car, while the remaining one is a very unusual crash in Q3 from Hamilton.
@@ -172,20 +176,21 @@ Hamilton was on average a bit over a tenth faster than Rosberg. When Rosberg was
 
 ```{r, echo=FALSE, warning=FALSE}
 ham_vs_ros_2015 <- compare_runs('hamilton', 'rosberg', 2015)
-gap_graph(ham_vs_ros_2015)
 ```
-
-## Head to Head
 
 The overall head to head saw Hamilton edging out Rosberg: ```r ham_vs_ros_2015$head_to_head```. After removing outliers, the gap between the two drivers is wider: ```r ham_vs_ros_2015$head_to_head_without_outliers```.
 
-This result ius very similar to the 2016 season. Also to be noted that Rosberg only outqualified Hamilton once in the first thirteen races, and then outqualified Hamilton every single time to the end of the season.
+This result is very similar to the 2016 season. Also to be noted that Rosberg only outqualified Hamilton once in the first thirteen races, and then outqualified Hamilton every single time to the end of the season.
+
+```{r, echo=FALSE, warning=FALSE}
+gap_graph(ham_vs_ros_2015)
+```
 
 ## Outliers
 
 Omitted from gaps calculations: ```r ham_vs_ros_2015$removed```
 
--- TODO use Q2 results
+* USA: Q3 was canceled because of heavy rain and the Q2 results were used to form the starting grid. Nico took pole position, but we are still omitting the gap from our calculations because at the time of Q2 the drivers were not fighting for pole position.
 
 ## Gap Distribution
 
@@ -198,28 +203,30 @@ Hamilton was on average a bit over a tenth faster than Rosberg, a result very cl
 
 ```{r, echo=FALSE, warning=FALSE}
 ham_vs_ros_2014 <- compare_runs('hamilton', 'rosberg', 2014)
-gap_graph(ham_vs_ros_2014)
 ```
 
-## Head to Head
-
 The overall head to head this time saw Hamilton being edged out by Rosberg: ```r ham_vs_ros_2014$head_to_head```. After removing outliers, the result does not change but it is definitely closer: ```r ham_vs_ros_2014$head_to_head_without_outliers```.
+
+```{r, echo=FALSE, warning=FALSE}
+gap_graph(ham_vs_ros_2014)
+```
 
 ## Outliers
 
 Omitted from gaps calculations: ```r ham_vs_ros_2014$removed```
 
+* China: Hamilton was slightly more than a second faster than Rosberg on a wet session. We also removed a qualifying session where Rosberg was two seconds faster than Hamilton.
 * Austria: Hamilton spun on his second Q3 lap after his first lap was deleted because he exceeded the track limits
-* United Kingdom: Q3 was a wet session. Hamilton set his time too early and the gap between Rosberg and Hamilton was over two seconds
+* United Kingdom: Q3 was a wet session. Rosberg took pole while Hamilton had his fastest lap too early and the gap was over two seconds.
 * Germany: Hamilton crashed in Q1 due to a brake disc failure
 * Hungary: Hamilton's car caught fire during qualifying
 
+Two of the outliers were mechanical failures on Hamilton's car, while the remaining two were either a driver mistake (Austria) or bad strategy (United Kingdom).
+
 ## Gap Distribution
 
-Average gap: ```r ham_vs_ros_2014$mean```
+Average gap: ```r format(ham_vs_ros_2014$mean)```
 Standard deviation: ```r ham_vs_ros_2014$stddev```
-
-Hamilton was on average a bit over a tenth faster than Rosberg, a result very close to 2016.
 
 # All Together
 
