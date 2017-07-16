@@ -1,0 +1,167 @@
+---
+title: 'Formula 2017 vs 2016: Lap Times Compared'
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+layout: post
+---
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(rjson)
+library(purrr)
+```
+
+```{r set-fig-path, echo=FALSE}
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/f1-2016-vs-2017/')
+```
+
+## Introduction
+
+Formula 1 has seen a dramatic improvement in lap times thanks to the [new 2017 regulations](https://www.formula1.com/en/championship/inside-f1/rules-regs/2017-season-changes.html) which allowed teams to design wider cars with a lot more [downforce](http://bahensky13.wixsite.com/f1physics/downforce-traction). In the first half of the season, every single pole lap time was faster than its respective time in 2016.
+
+While cars are consistently faster, the improvement varies significantly on a track by track basis.
+
+## Lap Times Compared
+
+The following table shows for every race the pole lap times in 2016 and 2017, the absolute and percentage gap between the two, and a link to a YouTube video where you can watch the side by side pole laps. 
+
+```{r read-date, echo=FALSE, warning=FALSE}
+json_file <- function(circuit_id, year) {
+  paste('data/', circuit_id, '_', year, '.json', sep = '')
+}
+
+pole_time <- function(circuit_id, year) {
+  json_string <- readLines(json_file(circuit_id, year))
+  json <- fromJSON(json_string)
+  return(json$MRData$RaceTable$Races[[1]]$QualifyingResults[[1]]$Q3)
+}
+
+#TODO add silverstone
+circuit_ids <- c('albert_park', 'shanghai', 'bahrain', 'sochi', 'catalunya', 'monaco', 'villeneuve', 'BAK', 'red_bull_ring')
+
+races <- list(
+  list(name = 'Australia', circuit_id = 'albert_park', video_id = '4-mHzMIv27o'),
+  list(name = 'China', circuit_id = 'shanghai', video_id = 'EZxFXxgb1IU'),
+  list(name = 'Bahrain', circuit_id = 'bahrain', video_id = 'VWdHdDllDl8'),
+  list(name = 'Russia', circuit_id = 'sochi', video_id = 'Xa0KAFKPSCE'),
+  list(name = 'Spain', circuit_id = 'catalunya', video_id = 'XJnapyVy_Gk'),
+  list(name = 'Monaco', circuit_id = 'monaco', video_id = 'YPVfDwef_C8'),
+  list(name = 'Canada', circuit_id = 'villeneuve', video_id = 'H3U7XmfF-7U'),
+  list(name = 'Azerbaijan', circuit_id = 'BAK', video_id = '8dcephUfBdE'),
+  list(name = 'Austria', circuit_id = 'red_bull_ring', video_id = '9OvhdM4Jpbg'),
+  list(name = 'United Kingdom', circuit_id = 'silverstone', video_id = 'nJbSJMVpHbg'))
+
+to_seconds <- function(string) {
+  if (!is.na(string)) {
+    by_colon <- strsplit(string, split = ":")[[1]]
+    min <- as.integer(by_colon[[1]])
+    by_period <- strsplit(by_colon[[2]], split = "\\.")[[1]]
+    sec <- as.integer(by_period[[1]])
+    mil <- as.integer(by_period[[2]])
+    60 * min + sec + mil / 1000
+  } else {
+    string
+  }
+}
+
+lists <- map(races, function(race) {
+  pole_2016 <- pole_time(race$circuit_id, 2016)
+  pole_2017 <- pole_time(race$circuit_id, 2017)
+  gap <- to_seconds(pole_2017) - to_seconds(pole_2016)
+  percentage <- gap / to_seconds(pole_2016)
+  c(race$name, race$circuit_id, pole_2016, pole_2017, gap, percentage, race$video_id)
+})
+
+
+df <- setNames(do.call(rbind.data.frame, lists), c("Name", "Circuit", "Pole 2016", "Pole 2017", "Gap", "Percentage", "Video Id"))
+df[, 5] <- as.numeric(as.character(df[, 5]))
+df[, 6] <- as.numeric(as.character(df[, 6]))
+```
+
+<div markdown="0">
+```{r echo=FALSE}
+create_link <- function(id) {
+  return(paste('<a href="https://www.youtube.com/watch?v=', id, '">Video</a>', sep = ''))
+}
+
+table_df <- df[, names(df) != "Circuit"]
+table_df[, "Percentage"] <- percent(df[, "Percentage"])
+table_df[, "Side by Side"] <- unlist(map(df$`Video Id`, create_link))
+table_df <- table_df[, names(table_df) != "Video Id"]
+
+kable(table_df,
+      col.names = c("Name", "Pole 2016", "Pole 2017", "Gap", "Percentage", "Side by Side"),
+      row.names = FALSE,
+      format = 'html',
+      table.attr = "class=\"table\"",
+      escape = FALSE)
+```
+</div>
+
+## 2017 Improvement
+
+### Gaps
+
+The following graph shows the race by race gaps between the 2016 and 2017 pole times. All gaps are negative which means 2017 poles always beat 2016 ones.
+
+```{r echo=FALSE}
+gap_graph <- function(df) {
+  x <- df$Name
+  y <- df$Gap
+  gap_df <- data.frame(x, y)
+  gap_df$x <- factor(gap_df$x, levels = unique(gap_df$x))
+  ggplot(gap_df, aes(x, y)) + geom_bar(stat = 'identity') +
+    labs(x = "Race", y = "Gap") +
+    scale_y_continuous(breaks = seq(-4, +4, 0.5)) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+}
+```
+
+```{r echo=FALSE}
+gap_graph(df)
+```
+
+2017 cars are faster than 2016 cars but the extent to which they are faster changes on a track by track basis.
+The tracks that saw the biggest improvement are China, Austria, Spain, and the United Kingdom. What these tracks have in common is that they have a lot of high speed corners.
+
+The explanation for this is that there is a quadratic relationship between speed and downforce so the improvements in downforce have a significantly bigger impact on high speed corners. At twice the speed, four times the amount of downforce will be generated.
+
+This effect is confirmed by the pole time in Monaco, which saw a close to average improvement. While downforce is important in Monaco, most corners are low or medium speed corners which means an improvement in downforce is not as visible as in Austria or China.
+
+### Percentage
+
+The following graph shows the race by race percentage improvement relative to the 2016 pole lap time. 
+
+```{r echo=FALSE}
+percentage_graph <- function(df) {
+  x <- df$Name
+  y <- df$Percentage
+  gap_df <- data.frame(x, y)
+  gap_df$x <- factor(gap_df$x, levels = unique(gap_df$x))
+  ggplot(gap_df, aes(x, y)) + geom_bar(stat = 'identity') +
+    labs(x = "Race", y = "Percentage") +
+    scale_y_continuous(breaks = seq(-0.05, 0, 0.005), labels = percent) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+}
+```
+
+```{r echo=FALSE}
+percentage_graph(df)
+```
+
+While the gap in China (-3.724) is a tiny bit bigger in absolute value than the one in Austria (-3.671), looking at the percentages makes the improvement in Austria stand out because the almost four seconds gained are over the shortest lap time throughout the season.
+
+The mean and median of the percentage improvement are ```r percent(mean(df$Percentage))``` and ```r percent(median(df$Percentage))```. After ten races and halfway through the season, it is fair to say that 2017 cars are over 2% faster than cars in the 2016 season.
+
+## Conclusion
+
+The 2017 season has had a lot to offer so far. The championship battle has been intense and the faster cars make it interesting to even just track how much faster are they going compared to previous seasons.
+
+In the second half of the season, tracks with a lot of high speed corners are definitely Spa (Belgium) and Suzuka (Japan), although also Interlagos (Brazil) and Austin (Texas) could be significantly quicker.
+
