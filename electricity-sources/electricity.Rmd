@@ -1,0 +1,113 @@
+---
+title: "Electricity by Source in the United States"
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+layout: post
+---
+
+## Introduction
+
+This post is about electricity generation in the United States. We will look at the sources used to produce electricity. The data is provided by the U.S. Energy Information Administration ([EIA](https://www.eia.gov/)) which publishes reports and statistics related to the energy sector in the United States.
+
+The specific dataset used in this post was extracted from the page  [Net Generation by Energy Source](https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_1_01) on the EIA's website. The data presented in the emissions table was taken from [EIA's Monthly Report](https://www.eia.gov/totalenergy/data/monthly/#environment). 
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+```{r set-fig-path, echo=FALSE}
+df <- read.csv('US_Electricity_Production_Sources_Percentages.csv')
+
+df[,1] <- as.character(df[[1]])
+for (i in 2:13) {
+  df[,i] <- as.numeric(sub("%", "",df[[i]],fixed=TRUE)) / 100
+}
+
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/electricity-sources/')
+```
+
+## Dataset
+
+The net generation dataset contains the electricity production in the United States by source.
+
+The sources included are classified as: Coal, Petroleum Liquids, Petroleum Coke, Natural Gas, Other Gas, Nuclear Hydroelectric Conventional, Solar, Other Renewables, Hydroelectric Pumped, Storage, Other.
+
+From the website: 
+
+> Renewable Sources include wood, black liquor, other wood waste, biogenic municipal solid waste, landfill gas, sludge waste, agriculture byproducts, other biomass, geothermal, solar thermal, photovoltaic energy, and wind.
+
+> Other includes non-biogenic municipal solid waste, batteries, hydrogen, purchased steam, sulfur, tire-derived fuel, and other miscellaneous energy sources.
+
+## Total Generation
+
+The generation of electricity has been mostly flat in the past ten years except for a small dip in 2009 due to the Great Recession. This is interesting because the dip in lost output (GDP) during the great recession was a lot deeper than the one shown on this graph.
+
+```{r echo=FALSE}
+ggplot(df, aes(Period, Total.Generation.at.Utility.Scale.Facilities, group = 1)) +
+  geom_line(stat="identity") +
+  expand_limits(y = 20000) +
+  ggtitle(label = "Production and Direct Use", subtitle = NULL) +
+  labs(x = "Period", y = "Quantity")
+```
+
+## Generation by Source
+
+The following graph shows how the generation by source changed over time. Here are the trends over a ten year period ending in 2016:
+
+- Coal has decreased from about 50% to about 30%.
+- Natural Gas has increased from about 20% to above 30%
+- Other Renewables increased from about 2% to about 5%
+- Solar went from almost zero (0.01%) to almost 1%
+- Nuclear has been constant around 20%
+
+```{r echo=FALSE}
+df <- plyr::rename(df, c(
+  "Renewable.Sources.Excluding.Hydroelectric.and.Solar"="Other Renewables"))
+mf <- melt(df[1:12], id.vars = 'Period', variable.name = 'Source', value.name = 'Quantity')
+
+
+ggplot(mf, aes(Period, Quantity)) +
+  geom_bar(aes(fill = Source), stat="identity") +
+  ggtitle(label = "Electricity by Source", subtitle = NULL) +
+  labs(x = "Year", y = 'Quantity (Percentage)')
+
+```
+
+## Coal vs Natural Gas
+
+The following graph shows how coal is being replaced by natural gas and other renewables.
+
+```{r echo=FALSE}
+bp <- ggplot(df, aes(x=Period, group = 1)) +
+  geom_line(aes(y = Coal, color = "Coal")) +
+  geom_line(aes(y = Natural.Gas, color = "Natural Gas")) +
+  geom_line(aes(y = df$`Other Renewables`, color = "Other renewables")) +
+  labs(x = "Year", y = 'Quantity (Percentage)')
+bp
+```
+
+## Carbon Dioxide Emissions by the Electricity Sector
+
+In our period of interest the amount of carbon dioxide emitted by the electricity sector has been decreasing because of natural gas (which emits about 50% less than coal), and renewables (which does not emit any carbon dioxide).
+
+```{r load-emissions, echo=FALSE}
+# File was manually edited from https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T12.06&freq=m, which
+# is part of the montly review at https://www.eia.gov/totalenergy/data/monthly/#environment
+emissions <- read.csv('US_Emissions_Electricity_Sector.csv')
+emissions <- filter(emissions, Period >= 2006)
+```
+
+```{r echo=FALSE, message=FALSE}
+bp <- ggplot(emissions, aes(x=Period, Total.CO2.Emissions..MMT.)) +
+  geom_line() +
+  expand_limits(y = 0) +
+  labs(x = "Year", y = 'Emissions (Millions of Metric Tons)')
+bp
+```
