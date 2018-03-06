@@ -23,7 +23,7 @@ library(ggplot2)
 ```
 
 ```{r set-fig-path, echo=FALSE}
-jodi <- read.csv('world_Primary_CSV.csv')
+jodi <- read.csv('data/world_Primary_CSV.csv')
 opts_knit$set(base.dir = getwd(), base.url = '/')
 opts_chunk$set(fig.path = 'assets/jodi-oil/')
 ```
