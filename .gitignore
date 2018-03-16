@@ -1,1 +1,6 @@
 blog/_site
+blog/_posts
+data
+assets
+.RData
+.Rhistory
