@@ -1,0 +1,245 @@
+---
+title: "Chicago Temperatures"
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+layout: post
+---
+
+## Introduction
+
+This blog post is about temperatures in Chicago. The main goal is to analyze patterns about temperatures in different months and the duration of Chicago winters.
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(smooth)
+library(reshape2)
+```
+
+## Dataset
+
+```{r set-fig-path, echo=FALSE}
+df <- read.csv('data/1203300.csv')
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/chicago-temp/')
+```
+
+The dataset was downloaded from the National Oceanic and Atmospheric Administration's (NOAA) [Climate Data Online portal](https://www.ncdc.noaa.gov/cdo-web/) and contains the temperatures recorded at the Chicago Midway weather station.
+
+A subset of this dataset is utilized in the official Chicago temperature dataset ([Climate of Chicago](https://en.wikipedia.org/wiki/Climate_of_Chicago). It was chosen for this analysis because of its completeness.
+
+```{r, echo=FALSE}
+preprocess <- function(df) {
+  df <- df[, names(df) != "STATION"]
+  df <- df[, names(df) != "STATION_NAME"]
+  df <- filter(df, TMAX != -9999, TMIN != -9999)
+  df$DATE <- as.character(df$DATE)
+  return(add_year(df))
+}
+
+add_year <- function(dataset) {
+  return(dataset %>%
+    mutate(
+      year = as.integer(substr(dataset$DATE, 1, 4)),
+      month = as.integer(substr(dataset$DATE, 6, 7)),
+      day = as.integer(substr(dataset$DATE, 9, 10))))
+}
+
+df <- preprocess(df)
+```
+
+```{r, echo=FALSE}
+current_year <- strtoi(substr(Sys.Date(), 1, 4))
+last_year_df <- filter(df, year == current_year - 1)
+last_five_years_df <- filter(df, year >= current_year - 5, year <= current_year - 1)
+all_time_df <- filter(df, year < current_year)
+na_month <- filter(df, is.na(month))
+```
+
+## Month Analysis
+
+This section is about characterizing temperatures over different months in Chicago.
+
+We want to get an idea of what the coldest and hottest months are and also learn about the temperature
+variability.
+
+The following graphs show the temperature ranges for every month. Here's how to read the graph:
+<ul>
+  <li>The red and blue boxes contain data between the 25th and the 75th percentile for maximum and minimum temperatures respectively</li>
+  <li>The horizontal lines inside those boxes represent the average</li>
+  <li>The vertical lines coming out of the boxes are the remaining temperatures (before the 25th and after the 75th percentiles)</li>
+  <li>The black dots represent outliers</li>
+</ul>
+
+```{r report-by-month, echo=FALSE, warning=FALSE}
+report_by_month <- function(dataset) {
+  return(dataset %>%
+    group_by(month) %>%
+    summarise(
+      average = mean((TMAX + TMIN) / 2),
+      sd = sd((TMAX + TMIN) / 2),
+      max = max(TMAX),
+      min = min(TMIN)))
+}
+```
+
+```{r, echo=FALSE, warning=FALSE}
+month_boxplot <- function(dataset, title) {
+  with_month_as_class <- mutate(dataset, month_class = factor(dataset$month, labels = 
+    c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")))
+  df_subset <- with_month_as_class[, (names(with_month_as_class) %in% c("month_class","TMAX","TMIN"))]
+  aggregated <- melt(df_subset, id.vars=c("month_class"))
+  ggplot(aggregated, aes(month_class, value)) +
+    geom_boxplot(position = "identity", aes(fill = variable)) +
+    xlab("Month") + ylab("Temperature") + guides(fill=guide_legend(title=NULL)) +
+    scale_fill_discrete(breaks=c("TMAX", "TMIN"), labels=c("Max", "Min")) +
+    labs(title = title)
+}
+
+month_boxplot(last_five_years_df, 'Temperature Ranges by Month (Last Five Years)')
+```
+
+Here are some findings:
+<ul>
+  <li>January and February are the coldest months followed by December</li>
+  <li>In the past five years, January was slightly colder than February</li>
+  <li>The hottest months are the summer months June, July, and August</li>
+  <li>The cold months have the highest variability while the hottest months have very little variability</li>
+</ul>
+
+```{r, echo=FALSE}
+month_boxplot(all_time_df, 'Temperature Ranges by Month (All Time)')
+```
+
+Most findings still hold on the above graph generated using the all time temperatures (since 1930) except that December is roughly as cold as February.
+
+```{r, echo=FALSE, warning=FALSE}
+jan_data <- filter(df, month == 1)
+feb_data <- filter(df, month == 2)
+
+at_or_above <- function(d, temp) { return(length(d[d >= temp])) }
+at_or_below <- function(d, temp) { return(length(d[d <= temp])) }
+
+cold_by_year <- function(dataset) {
+  return(dataset %>%
+    group_by(year) %>%
+    summarise(
+      average = mean((TMAX + TMIN) / 2),
+      days_below_ten = at_or_below(TMIN, 10),
+      full_days_below_freezing = at_or_below(TMAX, 32)) %>%
+    arrange(desc(year)))
+}
+
+jan_data <- filter(df, month == 1)
+feb_data <- filter(df, month == 2)
+
+jan_cold <- cold_by_year(jan_data)
+feb_cold <- cold_by_year(feb_data)
+
+joined_data <- inner_join(jan_cold, feb_cold, by = "year", suffix = c("_jan", "_feb"))
+joined_data <- joined_data[, c(1, 2, 5, 3, 6, 4, 7)]
+
+row_count <- length(joined_data[["average_jan"]])
+jan_colder <- sum(joined_data[["average_jan"]] < joined_data[["average_feb"]])
+```
+
+## Winter Boundaries
+
+This section is about evaluating the duration of winter in Chicago.
+
+The data that follows was computed using the definition of winter that follows:
+<ul>
+  <li>Start: First day after July 31st that is at or below freezing.</li>
+  <li>End: Last day on or before July 31st that is at or below freezing.</li>
+</ul>
+
+The July 31st boundary was chosen to be safe since the temperature in
+July or August was never below 43.
+
+```{r winter-boundaries, echo=FALSE, warning=FALSE}
+day_of_year <- function(date) {
+  return(as.numeric(strftime(date, format = "%j")))
+}
+
+winter_from_spring <- function(year) {
+  return(paste(as.numeric(year) - 1, year, sep = "/"))
+}
+
+winter_from_fall <- function(year) {
+  return(paste(year, as.numeric(year) + 1, sep = "/"))
+}
+
+end_of_winter <- all_time_df %>%
+  group_by(year) %>%
+  filter(TMIN <= 32 & month < 8) %>%
+  summarise(end_of_winter = max(DATE)) %>%
+  mutate(
+    winter = winter_from_spring(year),
+    end_of_winter_doy = day_of_year(end_of_winter))
+
+start_of_winter <- all_time_df %>%
+  group_by(year) %>%
+  filter(TMIN <= 32 & month > 7) %>%
+  summarise(
+    start_of_winter = min(DATE)) %>%
+  mutate(
+    winter = winter_from_fall(year),
+    start_of_winter_doy = day_of_year(start_of_winter))
+
+winter_data <- merge(start_of_winter, end_of_winter, by.x = "winter", by.y = "winter")
+winter_data <- mutate(winter_data, duration = 365 - start_of_winter_doy + end_of_winter_doy)
+```
+
+The following plot is a [quantile-quantile plot](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) that shows how the distribution is normal because it is roughly linear.
+
+```{r echo=FALSE}
+to_date <- function(day_of_year) {
+  date <- as.Date(day_of_year, format = "%j", origin = "1.1.2018");
+  strftime(date, "%B %d")
+}
+mean_start <- to_date(round(mean(winter_data$start_of_winter_doy)))
+mean_end <- to_date(round(mean(winter_data$end_of_winter_doy)))
+```
+
+```{r, echo=FALSE, warning=FALSE}
+qqnorm(winter_data$duration)
+```
+
+The duration of a Chicago winter follows a distribution that is roughly normal with a mean of `r format(mean(winter_data$duration), digits=2)` and a standard deviation of `r format(sd(winter_data$duration), digits = 2)`. A typical winter starts around `r mean_start` and ends around `r mean_end`.
+
+The following table shows the duration of winter along with winter boundaries for the past five years.
+
+```{r echo=FALSE}
+html_winter_table <- function(dataset) {
+  kable(dataset,
+      col.names = c("Winter", "Start of Winter", "End of Winter", "Duration"),
+      row.names = FALSE,
+      format = 'html',
+      table.attr = "class=\"table\"",
+      escape = FALSE)
+} 
+```
+
+Most Recent five years
+<div markdown="0">
+```{r echo=FALSE}
+shortest <- head(arrange(winter_data, desc(winter)), n = 5)
+shortest <- shortest[, (names(shortest) %in% c("winter","start_of_winter","end_of_winter", "duration"))]
+html_winter_table(shortest)
+```
+</div>
+
+Last years's winter was an exceptionally short one. Other than that winters have been shorter than average but still within one standard deviation from the mean.
+
+<div markdown="0">
+```{r echo=FALSE}
+longest <- head(arrange(winter_data, desc(duration)), n = 3)
+longest <- longest[, (names(longest) %in% c("winter","start_of_winter","end_of_winter", "duration"))]
+html_winter_table(longest)
+```
+</div>
+
+The above table shows some of the toughest winters in Chicago. Some other ones might have been tougher overall becuase of snowfall and average/min temperatures. In any case, 218 days of winter means over 7 months of cold. Luckily we haven't seen that for a while.
