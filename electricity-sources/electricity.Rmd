@@ -1,5 +1,6 @@
 ---
 title: "Electricity by Source in the United States"
+tags: ["energy", "electricity"]
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]

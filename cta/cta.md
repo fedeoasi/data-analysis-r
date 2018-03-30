@@ -6,6 +6,9 @@ output:
     - '-s'
     - '-t'
     - markdown
+tags:
+- chicago
+- transportation
 title: 'CTA "L" Ridership Figures Analyzed'
 ---
 

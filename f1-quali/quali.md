@@ -6,6 +6,9 @@ output:
     - '-s'
     - '-t'
     - markdown
+tags:
+    - 'formula one'
+    - 'qualifying'
 title: 'Formula One Qualifying Battles: Hamilton vs Rosberg'
 ---
 

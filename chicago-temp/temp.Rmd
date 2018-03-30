@@ -1,5 +1,6 @@
 ---
 title: "Chicago Temperatures"
+tags: ["chicago", "weather"]
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]
@@ -29,7 +30,7 @@ opts_chunk$set(fig.path = 'assets/chicago-temp/')
 
 The dataset was downloaded from the National Oceanic and Atmospheric Administration's (NOAA) [Climate Data Online portal](https://www.ncdc.noaa.gov/cdo-web/) and contains the temperatures recorded at the Chicago Midway weather station.
 
-A subset of this dataset is utilized in the official Chicago temperature dataset ([Climate of Chicago](https://en.wikipedia.org/wiki/Climate_of_Chicago). It was chosen for this analysis because of its completeness.
+A subset of this dataset is utilized in the official Chicago temperature dataset ([Climate of Chicago](https://en.wikipedia.org/wiki/Climate_of_Chicago)). It was chosen for this analysis because of its completeness.
 
 ```{r, echo=FALSE}
 preprocess <- function(df) {

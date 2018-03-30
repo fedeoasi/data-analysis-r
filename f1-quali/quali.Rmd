@@ -1,5 +1,6 @@
 ---
 title: 'Formula One Qualifying Battles: Hamilton vs Rosberg'
+tags: ["formula one", "qualifying"]
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]

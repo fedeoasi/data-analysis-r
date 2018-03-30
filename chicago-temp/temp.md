@@ -6,6 +6,9 @@ output:
     - '-s'
     - '-t'
     - markdown
+tags:
+- chicago
+- weather
 title: Chicago Temperatures
 ---
 
@@ -26,7 +29,7 @@ temperatures recorded at the Chicago Midway weather station.
 
 A subset of this dataset is utilized in the official Chicago temperature
 dataset ([Climate of
-Chicago](https://en.wikipedia.org/wiki/Climate_of_Chicago). It was
+Chicago](https://en.wikipedia.org/wiki/Climate_of_Chicago)). It was
 chosen for this analysis because of its completeness.
 
 Month Analysis

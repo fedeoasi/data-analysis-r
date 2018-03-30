@@ -1,5 +1,6 @@
 ---
 title: "Trends in the JODI Dataset"
+tags: ["energy", "oil"]
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]

@@ -6,6 +6,9 @@ output:
     - '-s'
     - '-t'
     - markdown
+tags: 
+    - 'formula one'
+    - 'qualifying'
 title: 'Formula 2017 vs 2016: Lap Times Compared'
 ---
 

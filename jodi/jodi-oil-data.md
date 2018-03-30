@@ -6,6 +6,10 @@ output:
     - '-s'
     - '-t'
     - markdown
+tags:
+    - 'energy'
+    - 'oil'
+
 title: Trends in the JODI Dataset
 ---
 

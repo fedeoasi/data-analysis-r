@@ -1,5 +1,6 @@
 ---
 title: 'CTA "L" Ridership Figures Analyzed'
+tags: ['chicago', 'transportation']
 output:
   md_document:
     pandoc_args: ["-s", "-t", "markdown"]

@@ -6,6 +6,9 @@ output:
     - '-s'
     - '-t'
     - markdown
+tags:
+    - energy
+    - electricity
 title: Electricity by Source in the United States
 ---
 
