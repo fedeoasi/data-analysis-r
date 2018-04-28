@@ -1,5 +1,5 @@
 ---
-title: 'Formula 2017 vs 2016: Lap Times Compared'
+title: 'Formula One 2017 vs 2016: Lap Times Compared'
 tags: ["formula one", "qualifying"]
 output:
   md_document:
@@ -20,6 +20,7 @@ library(purrr)
 ```{r set-fig-path, echo=FALSE}
 opts_knit$set(base.dir = getwd(), base.url = '/')
 opts_chunk$set(fig.path = 'assets/f1-2016-vs-2017/')
+source('../f1/utils.R')
 ```
 
 ## Introduction
@@ -57,19 +58,6 @@ races <- list(
   list(name = 'Azerbaijan', circuit_id = 'BAK', video_id = '8dcephUfBdE'),
   list(name = 'Austria', circuit_id = 'red_bull_ring', video_id = '9OvhdM4Jpbg'),
   list(name = 'United Kingdom', circuit_id = 'silverstone', video_id = 'nJbSJMVpHbg'))
-
-to_seconds <- function(string) {
-  if (!is.na(string)) {
-    by_colon <- strsplit(string, split = ":")[[1]]
-    min <- as.integer(by_colon[[1]])
-    by_period <- strsplit(by_colon[[2]], split = "\\.")[[1]]
-    sec <- as.integer(by_period[[1]])
-    mil <- as.integer(by_period[[2]])
-    60 * min + sec + mil / 1000
-  } else {
-    string
-  }
-}
 
 lists <- map(races, function(race) {
   pole_2016 <- pole_time(race$circuit_id, 2016)
