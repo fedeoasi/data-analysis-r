@@ -1,0 +1,24 @@
+{
+  "sources":[
+    {
+      "name":"JODI",
+      "category":"Energy",
+      "link":"https://www.jodidata.org/oil/database/data-downloads.aspx"
+    },
+    {
+      "name":"Health Care Costs",
+      "category":"Health Care",
+      "link":"http://www.healthcostinstitute.org"
+    },
+    {
+      "name":"Procedure Costs (data from HCCI)",
+      "category":"Health Care",
+      "link":"https://www.guroo.com"
+    },
+    {
+      "name":"Car Sales",
+      "category":"Automotive",
+      "link":"http://carsalesbase.com"
+    }
+  ]
+}

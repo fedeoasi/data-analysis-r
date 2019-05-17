@@ -1,25 +1,26 @@
 package com.github.fedeoasi
 
-import java.io.{FileOutputStream, PrintWriter}
+import java.io.{FileInputStream, FileOutputStream}
 import java.net.URL
 import java.nio.file.{Path, Paths}
 
-import com.github.tototoshi.csv._
+import org.json4s.{Formats, StreamInput}
 import resource._
 
-case class Indicator(name: String, category: String, link: URL, extraLink: Option[URL])
+// TODO add custom serializer for URLs
+case class Indicator(
+  name: String, category: String, description: Option[String], link: URL, extraLink: Option[URL], tags: Seq[String])
+case class SerializedIndicator(
+  name: String, category: String, description: Option[String], link: String, extraLink: Option[String], tags:  Option[Seq[String]])
+case class Indicators(indicators: Seq[SerializedIndicator])
 
 object IndicatorReader {
-  private val Name = "Name"
-  private val Category = "Category"
-  private val Link = "Link"
-  private val Extra = "Extra Link"
+  import org.json4s.native.Serialization._
+  implicit val formats: Formats = org.json4s.DefaultFormats
 
-  def read(file: Path): Seq[Indicator] = {
-    managed(CSVReader.open(file.toFile)).acquireAndGet { reader =>
-      reader.allWithHeaders().map { entry =>
-        Indicator(entry(Name), entry(Category), new URL(entry(Link)), toUrl(entry(Extra)))
-      }
+  def readJson(file: Path): Seq[Indicator] = {
+    read[Indicators](StreamInput(new FileInputStream(file.toFile))).indicators.map { i =>
+      Indicator(i.name, i.category, i.description, new URL(i.link), i.extraLink.flatMap(toUrl), i.tags.getOrElse(Seq.empty))
     }
   }
 
@@ -47,7 +48,7 @@ object MarkdownConverter {
       val printedIndicators = indicatorsForCategory.map { indicator =>
         s"""### ${indicator.name}
            |
-           |<${indicator.link}>
+           |[Link](${indicator.link})
         """.stripMargin
       }.mkString("\n")
 
@@ -61,9 +62,10 @@ object MarkdownConverter {
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val indicators = IndicatorReader.read(Paths.get("indicators.csv"))
+    val indicators = IndicatorReader.readJson(Paths.get("indicators.json"))
     val markdown = MarkdownConverter.convert(indicators)
     println(markdown)
     managed(new FileOutputStream("../blog/indicators.md")).acquireAndGet(_.write(markdown.getBytes))
   }
 }
+

@@ -8,4 +8,5 @@ object Dependencies {
   lazy val commonsIo = "commons-io" % "commons-io" % "2.4"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.5"
   lazy val scopt = "com.github.scopt" %% "scopt" % "3.7.0"
+  lazy val json4sNative = "org.json4s" %% "json4s-native" % "3.6.5"
 }
