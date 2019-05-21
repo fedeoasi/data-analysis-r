@@ -9,4 +9,7 @@ object Dependencies {
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.5"
   lazy val scopt = "com.github.scopt" %% "scopt" % "3.7.0"
   lazy val json4sNative = "org.json4s" %% "json4s-native" % "3.6.5"
+  lazy val scalaTestPlay = "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.2" % Test
+  lazy val webJarsBootstrap = "org.webjars" % "bootstrap" % "4.3.1"
+
 }

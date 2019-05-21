@@ -16,7 +16,7 @@ class IndicatorRepository(indicators: Seq[Indicator]) {
 
 object IndicatorRepository {
   def main(args: Array[String]): Unit = {
-    val indicators = IndicatorReader.readJson(Paths.get("indicators.json"))
+    val indicators = IndicatorReader.readJson(Paths.get("public/indicators.json"))
     val repo = new IndicatorRepository(indicators)
 
     println(repo.findByCategory("Automotive").mkString("\n"))

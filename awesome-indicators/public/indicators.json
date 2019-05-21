@@ -83,113 +83,135 @@
     {
       "name":"US Natural Gas",
       "category":"Energy",
-      "link":"https://www.eia.gov/dnav/ng/hist/n9140us2A.htm"
+      "link":"https://www.eia.gov/dnav/ng/hist/n9140us2A.htm",
+      "unit": ""
     },
     {
       "name":"US Electricity Generation by source",
       "category":"Energy",
-      "link":"https://www.eia.gov/electricity/data/browser/#/topic/0?agg=2,0,1&fuel=vvg&geo=g&sec=g&linechart=ELEC.GEN.ALL-US-99.A&columnchart=ELEC.GEN.ALL-US-99.A&map=ELEC.GEN.ALL-US-99.A&freq=A&ctype=linechart&ltype=pin&rtype=s&maptype=0&rse=0&pin="
+      "link":"https://www.eia.gov/electricity/data/browser/#/topic/0?agg=2,0,1&fuel=vvg&geo=g&sec=g&linechart=ELEC.GEN.ALL-US-99.A&columnchart=ELEC.GEN.ALL-US-99.A&map=ELEC.GEN.ALL-US-99.A&freq=A&ctype=linechart&ltype=pin&rtype=s&maptype=0&rse=0&pin=",
+      "unit": ""
     },
     {
       "name":"Number of Nuclear Reactors by Country",
       "category":"Energy",
-      "link":"https://www.iaea.org/PRIS/WorldStatistics/OperationalReactorsByCountry.aspx"
+      "link":"https://www.iaea.org/PRIS/WorldStatistics/OperationalReactorsByCountry.aspx",
+      "unit": ""
     },
     {
       "name":"Everything about Oil and Natural Gas",
       "category":"Energy",
-      "link":"https://www.jodidata.org/oil/database/data-downloads.aspx"
+      "link":"https://www.jodidata.org/oil/database/data-downloads.aspx",
+      "unit": ""
     },
     {
       "name":"Health Insurance Coverage",
       "category":"Health Care",
       "link":"https://www.cdc.gov/nchs/nhis/releases.htm#health_insurance_coverage",
-      "extraLink":"https://docs.google.com/spreadsheets/d/1MvxRJgy0OV51QrPJBqClvfZmux3SZLmj_kOzB2q4JzU"
+      "extraLink":"https://docs.google.com/spreadsheets/d/1MvxRJgy0OV51QrPJBqClvfZmux3SZLmj_kOzB2q4JzU",
+      "unit": ""
     },
     {
       "name":"Health Care Spending Over Time",
       "category":"Health Care",
-      "link":"http://www.healthcostinstitute.org"
+      "link":"http://www.healthcostinstitute.org",
+      "unit": ""
     },
     {
       "name":"Medicaid Enrollees over time",
       "category":"Health Care",
-      "link":"https://www.statista.com/statistics/245347/total-medicaid-enrollment-since-1966"
+      "link":"https://www.statista.com/statistics/245347/total-medicaid-enrollment-since-1966",
+      "unit": ""
     },
     {
       "name":"HSA Assets over time",
       "category":"Health Care",
-      "link":"http://www.devenir.com/health-savings-account-assets-see-another-period-20-percent-growth-exceeding-34-billion/"
+      "link":"http://www.devenir.com/health-savings-account-assets-see-another-period-20-percent-growth-exceeding-34-billion/",
+      "unit": ""
     },
     {
       "name":"Procedure Costs (data from HCCI)",
       "category":"Health Care",
-      "link":"https://www.guroo.com"
+      "link":"https://www.guroo.com",
+      "unit": ""
     },
     {
       "name":"Deportations in the US",
       "category":"Immigration",
-      "link":"https://www.ice.gov/removal-statistics/2016"
+      "link":"https://www.ice.gov/removal-statistics/2016",
+      "unit": ""
     },
     {
       "name":"Debt to GDP ratio by country",
       "category":"Output and Debt",
-      "link":"http://www.tradingeconomics.com/country-list/government-debt-to-gdp"
+      "link":"http://www.tradingeconomics.com/country-list/government-debt-to-gdp",
+      "unit": ""
     },
     {
       "name":"Income distribution in the US",
       "category":"Income and Wealth",
-      "link":"https://dqydj.com/income-percentile-calculator/"
+      "link":"https://dqydj.com/income-percentile-calculator/",
+      "unit": ""
     },
     {
       "name":"Net worth distribution in the US",
       "category":"Income and Wealth",
-      "link":"https://dqydj.com/net-worth-in-the-united-states-zooming-in-on-the-top-centiles/"
+      "link":"https://dqydj.com/net-worth-in-the-united-states-zooming-in-on-the-top-centiles/",
+      "unit": ""
     },
     {
       "name":"Gini index by country",
       "category":"Income and Wealth",
-      "link":"https://www.cia.gov/library/publications/the-world-factbook/rankorder/2172rank.html"
+      "link":"https://www.cia.gov/library/publications/the-world-factbook/rankorder/2172rank.html",
+      "unit": ""
     },
     {
       "name":"Homeownership Rate in the US",
       "category":"Income and Wealth",
-      "link":"https://fred.stlouisfed.org/series/RHORUSQ156N"
+      "link":"https://fred.stlouisfed.org/series/RHORUSQ156N",
+      "unit": ""
     },
     {
       "name":"Graduation Rates",
       "category":"Education",
-      "link":"http://oedb.org/rankings/graduation-rate"
+      "link":"http://oedb.org/rankings/graduation-rate",
+      "unit": ""
     },
     {
       "name":"Chicago Temperatures",
       "category":"Climate and Weather",
-      "link":"https://www.wunderground.com/history/airport/KORD/2013/1/28/MonthlyHistory.html"
+      "link":"https://www.wunderground.com/history/airport/KORD/2013/1/28/MonthlyHistory.html",
+      "unit": ""
     },
     {
       "name":"State of the News Media",
       "category":"Journalism",
-      "link":"http://www.journalism.org/2016/06/15/newspapers-fact-sheet"
+      "link":"http://www.journalism.org/2016/06/15/newspapers-fact-sheet",
+      "unit": ""
     },
     {
       "name":"Car Sales",
       "category":"Automotive",
-      "link":"http://carsalesbase.com"
+      "link":"http://carsalesbase.com",
+      "unit": ""
     },
     {
       "name":"Automated Driving",
       "category":"Automotive",
-      "link":"https://www.dmv.ca.gov/portal/dmv/detail/vr/autonomous/disengagement_report_2017"
+      "link":"https://www.dmv.ca.gov/portal/dmv/detail/vr/autonomous/disengagement_report_2017",
+      "unit": ""
     },
     {
       "name":"US Median Population Age",
       "category":"Demographics",
-      "link":"https://www.statista.com/statistics/241494/median-age-of-the-us-population/"
+      "link":"https://www.statista.com/statistics/241494/median-age-of-the-us-population/",
+      "unit": ""
     },
     {
       "name":"US State Population Changes",
       "category":"Census",
-      "link":"http://www.census.gov/newsroom/press-releases/2016/cb16-214.html"
+      "link":"http://www.census.gov/newsroom/press-releases/2016/cb16-214.html",
+      "unit": ""
     }
   ]
 }

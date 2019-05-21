@@ -62,7 +62,7 @@ object MarkdownConverter {
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val indicators = IndicatorReader.readJson(Paths.get("indicators.json"))
+    val indicators = IndicatorReader.readJson(Paths.get("public/indicators.json"))
     val markdown = MarkdownConverter.convert(indicators)
     println(markdown)
     managed(new FileOutputStream("../blog/indicators.md")).acquireAndGet(_.write(markdown.getBytes))
