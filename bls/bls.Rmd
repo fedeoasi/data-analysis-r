@@ -1,0 +1,39 @@
+---
+title: "Playing with Chicago Temperatures"
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+layout: post
+---
+
+## Introduction
+
+BLS Labor Statistics.
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(dplyr)
+library(ggplot2)
+
+library(rjson)
+library(blsAPI)
+```
+
+```{r load-packages, message=FALSE, echo=FALSE}
+bls_data_frame <- function(series, start_year, end_year) {
+  payload <- list(
+   'seriesid'=c(series),
+   'startyear'= start_year,
+   'endyear'= end_year,
+   'registrationKey' = Sys.getenv('BLS_KEY'))
+  layoffs_json <- blsAPI(payload, 2)
+  layoffs <- fromJSON(layoffs_json)
+  data <- layoffs$Results$series[[1]]$data
+  return(as.data.frame(do.call(rbind, data)))
+}
+
+software_developers <- bls_data_frame('LNU02038231', 2000, 2018)
+unemployment <- bls_data_frame('LNS14000000', 2010, 2018)
+```
+

@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title></title>
+
+<script src="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/navigation-1.1/tabsets.js"></script>
+<link href="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/highlightjs/default.css" rel="stylesheet" />
+<script src="/home/fcaimi/R/x86_64-pc-linux-gnu-library/3.4/rmarkdown/rmd/h/highlightjs/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Formula One 2018: Clustering Qualifying Results</h1>
+
+</div>
+
+
+Introduction
+------------
+
+In this post we are going to use a clustering algorithm to group F1
+teams based on their qualifying results in 2018.
+
+Dataset
+-------
+
+The data used in this blog post was downloaded from the [Ergast
+Developer API](http://ergast.com/mrd/). We are using the qualifying
+results for the first eight races in the current (2018) season.
+
+Methodology
+-----------
+
+The data used for the teams is the average of the best time for the two
+teammates posted over the full qualifying session, regardless of whether
+it was set in Q1, Q2, or Q3. When a driver did not set a time we just
+omit its record.
+
+Teams will be divided into three groups. While the clustering algorithm
+does not make any assumption other than separate the groups as much as
+possible, we will name the clusters as follows front-runners (1),
+midfield (2), back-runners (3).
+
+The algorithm used is
+[K-means](https://en.wikipedia.org/wiki/K-means_clustering) with a
+cluster size of three. K-means creates a specified number of cluster
+minimizing the within cluster variance. The resulting cluster means
+(also known as centroids) are representative lap times for every goup.
+These are not times that exist in the dataset but they are sort of a
+compromise between lap times within the same group.
+
+2018 Australian Grand Prix
+--------------------------
+
+In this section we are going to look at the Australian Grand Prix in
+detail and then apply the same methodology to the other quali sessions
+in the 2018 season.
+
+<div markdown="0">
+
+<table class="table">
+<thead>
+<tr>
+<th style="text-align:left;">
+Constructor.name
+</th>
+<th style="text-align:right;">
+Qmin\_seconds
+</th>
+<th style="text-align:left;">
+cluster
+</th>
+<th style="text-align:right;">
+center
+</th>
+<th style="text-align:right;">
+gap
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Mercedes
+</td>
+<td style="text-align:right;">
+81.6265
+</td>
+<td style="text-align:left;">
+[1]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #666666;text-align: c;"}
+</td>
+<td style="text-align:right;">
+81.82500
+</td>
+<td style="text-align:right;">
+-0.199
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ferrari
+</td>
+<td style="text-align:right;">
+81.8330
+</td>
+<td style="text-align:left;">
+[1]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #666666;text-align: c;"}
+</td>
+<td style="text-align:right;">
+81.82500
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Red Bull
+</td>
+<td style="text-align:right;">
+82.0155
+</td>
+<td style="text-align:left;">
+[1]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #666666;text-align: c;"}
+</td>
+<td style="text-align:right;">
+81.82500
+</td>
+<td style="text-align:right;">
+0.191
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Haas F1 Team
+</td>
+<td style="text-align:right;">
+83.2630
+</td>
+<td style="text-align:left;">
+[2]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #999999;text-align: c;"}
+</td>
+<td style="text-align:right;">
+83.42817
+</td>
+<td style="text-align:right;">
+-0.165
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Renault
+</td>
+<td style="text-align:right;">
+83.2965
+</td>
+<td style="text-align:left;">
+[2]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #999999;text-align: c;"}
+</td>
+<td style="text-align:right;">
+83.42817
+</td>
+<td style="text-align:right;">
+-0.132
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+McLaren
+</td>
+<td style="text-align:right;">
+83.7250
+</td>
+<td style="text-align:left;">
+[2]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #999999;text-align: c;"}
+</td>
+<td style="text-align:right;">
+83.42817
+</td>
+<td style="text-align:right;">
+0.297
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Force India
+</td>
+<td style="text-align:right;">
+84.2540
+</td>
+<td style="text-align:left;">
+[3]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #BBBBBB;text-align: c;"}
+</td>
+<td style="text-align:right;">
+84.58487
+</td>
+<td style="text-align:right;">
+-0.331
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Williams
+</td>
+<td style="text-align:right;">
+84.5760
+</td>
+<td style="text-align:left;">
+[3]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #BBBBBB;text-align: c;"}
+</td>
+<td style="text-align:right;">
+84.58487
+</td>
+<td style="text-align:right;">
+-0.009
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sauber
+</td>
+<td style="text-align:right;">
+84.5960
+</td>
+<td style="text-align:left;">
+[3]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #BBBBBB;text-align: c;"}
+</td>
+<td style="text-align:right;">
+84.58487
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Toro Rosso
+</td>
+<td style="text-align:right;">
+84.9135
+</td>
+<td style="text-align:left;">
+[3]{style="     color: white;border-radius: 4px; padding-right: 4px; padding-left: 4px; background-color: #BBBBBB;text-align: c;"}
+</td>
+<td style="text-align:right;">
+84.58487
+</td>
+<td style="text-align:right;">
+0.329
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+TODO
+====
+
+Use a Pirelli derived color scheme for the clusters
+===================================================
+
+Color the cluster number instead of the entire row
+==================================================
+
+Color gaps
+==========
+
+In Australia, the top three teams were on their own league. A couple of
+teams represented the mid field and then the back runners were all
+clustered together.
+
+The centroids (within cluster averages) show representative times per
+group.
+
+Overall Results
+---------------
+
+### Clusters
+
+<div markdown="0">
+
+<table class="table">
+<thead>
+<tr>
+<th style="text-align:left;">
+Team
+</th>
+<th style="text-align:right;">
+AUS
+</th>
+<th style="text-align:right;">
+BAH
+</th>
+<th style="text-align:right;">
+CHI
+</th>
+<th style="text-align:right;">
+AZE
+</th>
+<th style="text-align:right;">
+SPA
+</th>
+<th style="text-align:right;">
+MON
+</th>
+<th style="text-align:right;">
+CAN
+</th>
+<th style="text-align:right;">
+FRA
+</th>
+<th style="text-align:right;">
+Total
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Red Bull
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mercedes
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ferrari
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Haas F1 Team
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Renault
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+McLaren
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Force India
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Toro Rosso
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Williams
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sauber
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+23
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+### Gaps
+
+<div markdown="0">
+
+<table class="table">
+<thead>
+<tr>
+<th style="text-align:left;">
+Team
+</th>
+<th style="text-align:right;">
+AUS
+</th>
+<th style="text-align:right;">
+BAH
+</th>
+<th style="text-align:right;">
+CHI
+</th>
+<th style="text-align:right;">
+AZE
+</th>
+<th style="text-align:right;">
+SPA
+</th>
+<th style="text-align:right;">
+MON
+</th>
+<th style="text-align:right;">
+CAN
+</th>
+<th style="text-align:right;">
+FRA
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Mercedes
+</td>
+<td style="text-align:right;">
+-0.199
+</td>
+<td style="text-align:right;">
+-0.191
+</td>
+<td style="text-align:right;">
+0.097
+</td>
+<td style="text-align:right;">
+-0.303
+</td>
+<td style="text-align:right;">
+-0.297
+</td>
+<td style="text-align:right;">
+0.092
+</td>
+<td style="text-align:right;">
+-0.034
+</td>
+<td style="text-align:right;">
+-0.034
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ferrari
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+-0.333
+</td>
+<td style="text-align:right;">
+-0.415
+</td>
+<td style="text-align:right;">
+-0.066
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+-0.092
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Red Bull
+</td>
+<td style="text-align:right;">
+0.191
+</td>
+<td style="text-align:right;">
+0.523
+</td>
+<td style="text-align:right;">
+0.319
+</td>
+<td style="text-align:right;">
+-0.107
+</td>
+<td style="text-align:right;">
+0.328
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Haas F1 Team
+</td>
+<td style="text-align:right;">
+-0.165
+</td>
+<td style="text-align:right;">
+0.041
+</td>
+<td style="text-align:right;">
+-0.167
+</td>
+<td style="text-align:right;">
+-0.229
+</td>
+<td style="text-align:right;">
+-0.585
+</td>
+<td style="text-align:right;">
+0.443
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Renault
+</td>
+<td style="text-align:right;">
+-0.132
+</td>
+<td style="text-align:right;">
+-0.409
+</td>
+<td style="text-align:right;">
+-0.265
+</td>
+<td style="text-align:right;">
+-0.694
+</td>
+<td style="text-align:right;">
+0.113
+</td>
+<td style="text-align:right;">
+-0.347
+</td>
+<td style="text-align:right;">
+-0.499
+</td>
+<td style="text-align:right;">
+-0.499
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+McLaren
+</td>
+<td style="text-align:right;">
+0.297
+</td>
+<td style="text-align:right;">
+0.442
+</td>
+<td style="text-align:right;">
+0.447
+</td>
+<td style="text-align:right;">
+0.347
+</td>
+<td style="text-align:right;">
+-0.222
+</td>
+<td style="text-align:right;">
+-0.343
+</td>
+<td style="text-align:right;">
+0.355
+</td>
+<td style="text-align:right;">
+0.355
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Force India
+</td>
+<td style="text-align:right;">
+-0.331
+</td>
+<td style="text-align:right;">
+0.112
+</td>
+<td style="text-align:right;">
+-0.014
+</td>
+<td style="text-align:right;">
+0.475
+</td>
+<td style="text-align:right;">
+0.474
+</td>
+<td style="text-align:right;">
+-0.510
+</td>
+<td style="text-align:right;">
+-0.266
+</td>
+<td style="text-align:right;">
+-0.266
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Williams
+</td>
+<td style="text-align:right;">
+-0.009
+</td>
+<td style="text-align:right;">
+0.109
+</td>
+<td style="text-align:right;">
+-0.095
+</td>
+<td style="text-align:right;">
+-0.167
+</td>
+<td style="text-align:right;">
+0.442
+</td>
+<td style="text-align:right;">
+0.304
+</td>
+<td style="text-align:right;">
+-0.005
+</td>
+<td style="text-align:right;">
+-0.005
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sauber
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-0.108
+</td>
+<td style="text-align:right;">
+0.415
+</td>
+<td style="text-align:right;">
+0.744
+</td>
+<td style="text-align:right;">
+-0.441
+</td>
+<td style="text-align:right;">
+0.372
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Toro Rosso
+</td>
+<td style="text-align:right;">
+0.329
+</td>
+<td style="text-align:right;">
+-0.186
+</td>
+<td style="text-align:right;">
+-0.320
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.219
+</td>
+<td style="text-align:right;">
+0.082
+</td>
+<td style="text-align:right;">
+0.311
+</td>
+<td style="text-align:right;">
+0.311
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+Interesting Findings
+--------------------
+
+Force India joined the front runners in Baku Sauber …
+
+Conclusion
+----------
+
+Using three clusters might have been a bit limiting.
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

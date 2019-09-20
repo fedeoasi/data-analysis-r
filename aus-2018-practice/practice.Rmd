@@ -1,0 +1,60 @@
+---
+title: 'Australian GP 2018 Practice 2'
+tags: ["formula one", "practice two", "FP2"]
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+layout: post
+---
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(dplyr)
+library(plyr)
+library(ggplot2)
+library(scales)
+```
+
+```{r set-fig-path, echo=FALSE}
+df <- read.csv('data/2018_01_aus_f1_p2_timing_secondpracticesessionlaptimes_v01_1.csv')
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/aus-2018-practice/')
+```
+
+## Introduction
+
+```{r echo=F, warning=F}
+to_seconds <- function(string) {
+  lapTime <- as.character(string)
+  by_colon <- strsplit(lapTime, split = ":")[[1]]
+  if (grepl('\\.', lapTime)) {
+    min <- as.integer(by_colon[[1]])
+    by_period <- strsplit(by_colon[[2]], split = "\\.")[[1]]
+    sec <- as.integer(by_period[[1]])
+    mil <- as.integer(by_period[[2]])
+    60 * min + sec + mil / 1000
+  } else {
+    hour <- as.integer(by_colon[[1]])
+    min <- as.integer(by_colon[[2]])
+    sec <- as.integer(by_colon[[3]])
+    3600 * hour + 60 * min + sec
+  }
+}
+
+to_seconds_v <- Vectorize(to_seconds)
+
+df <- mutate(df, stime = to_seconds_v(df$lapTime), pit = df$pit == 'true')
+
+```
+
+```{r echo=F}
+df = arrange(df, name, lapNumber)
+df = ddply(df, .(name), transform, cuml=cumsum(stime))
+ggplot(df) + geom_point(aes(x=cuml, y=name), pch=1) +
+  geom_point(data = df[df['pit'] == TRUE, ], aes(x = cuml,y = name)) +
+  xlab(NULL) + ylab(NULL)
+
+```
+
+

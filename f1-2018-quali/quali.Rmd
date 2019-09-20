@@ -1,0 +1,292 @@
+---
+title: 'Formula One 2018: Clustering Qualifying Results'
+layout: post
+output:
+  md_document:
+    pandoc_args:
+    - -s
+    - -t
+    - markdown-bracketed_spans
+tags:
+- formula one
+- qualifying
+#always_allow_html: yes
+---
+
+```{r load-packages, message=FALSE, echo=FALSE}
+#The analysis that follows was performed using R with the following libraries:
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(jsonlite)
+library(kableExtra)
+```
+
+```{r set-fig-path, echo=FALSE}
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/f1-2018-quali/')
+
+source('../f1/utils.R')
+
+to_lap_time <- function(seconds) {
+  min <- floor(seconds / 60)
+  sec_and_millis <- seconds - min * 60
+  sec <- floor(sec_and_millis)
+  millis <- floor((sec_and_millis - sec) * 1000)
+  return(paste(min, ':', sprintf("%02d", sec), '.', sprintf("%03d", millis), sep = ''))
+}
+
+to_lap_time_v <- Vectorize(to_lap_time)
+```
+
+```{r echo=FALSE}
+to_seconds_v <- Vectorize(to_seconds)
+```
+
+## Introduction
+
+In this blog post we are going to use a clustering algorithm to group Formula One (F1) teams based on their qualifying results in 2018. While it is relatively easy to read qualifying results, it is
+not as simple to get a clear picture of the relative performance between teams. Clustering gives us a way to track the performance of teams over time and analyze patterns.
+
+## Dataset
+
+The data used in this blog post was downloaded from the [Ergast Developer API](http://ergast.com/mrd/).
+We are using the qualifying results for the first nine races of the current (2018) season.
+
+## Methodology
+
+The data used for the teams is the average of the best time for the two teammates posted over the full qualifying session, regardless of whether it was set in Q1, Q2, or Q3.
+When a driver did not set a time (e.g., Verstappen at Monaco) we just omit its record.
+
+```{r formatting, echo=FALSE}
+format_gap <- function(gap) {
+  return(round(gap, digits = 3))
+}
+```
+
+```{r clusters, echo=FALSE}
+colors <- c("#ba4daa", "#f50701", "#fd0")
+
+cluster_colored_span <- function(text, cluster) {
+  background <- colors[cluster]
+  return(paste('<div style="height: 100%; width: 100%; max-width: 50px; text-align: center; font-weight: bold; color: white;border-radius: 6px; padding: 2px 4px; background-color: ', background, ';">', text, '</div>'))
+}
+
+cluster_bordered_span <- function(text, cluster, time) {
+  background <- colors[cluster]
+  span_for_gap <- paste('<span style="display: block; color: black; padding: 2px 4px; text-align: c;">', text, ' </span>')
+  span_for_lap_time <- paste('<span style="height: 100%; width: 100%; text-align: center; color: white; background: ', background, '; border-radius: 6px; padding: 2px 4px; font-weight: bold;">', to_lap_time(time), '</span>')
+  return(paste(span_for_gap, span_for_lap_time))
+}
+
+cluster_span <- function(cluster) {
+  return(cluster_colored_span(cluster, cluster))
+}
+
+gap_span <- function(gap, cluster, time) {
+    return(cluster_bordered_span(gap, cluster, time))
+}
+
+cluster_span_v <- Vectorize(cluster_span)
+gap_span_v <- Vectorize(gap_span)
+```
+
+Teams will be divided into three groups. While the clustering algorithm does not make any assumption other than separate the groups as much as possible, we will name the clusters as follows: front-runners (<span style="color: white;border-radius: 4px; padding: 4px; background-color:  #ba4daa ;text-align: c;">1</span>), midfield (<span style="color: white;border-radius: 4px; padding: 4px; background-color:  #f50701 ;text-align: c;">2</span>), back of the pack (<span style="color: white;border-radius: 4px; padding: 4px; background-color:  #fd0 ;text-align: c;">3</span>).
+
+The algorithm used is [K-means](https://en.wikipedia.org/wiki/K-means_clustering) with a cluster size of three.
+K-means creates a specified number of clusters minimizing the within cluster variance.
+The resulting cluster averages (also known as centroids) are representative lap times for every group. These are not times that exist in the dataset but they represent a compromise between lap times within the same group.
+
+```{r team-clustering, echo=FALSE, warning=FALSE}
+json_file <- function(circuit_id, year) {
+  paste('./data/', circuit_id, '_', year, '.json', sep = '')
+}
+
+quali_results <- function(circuit_id, year) {
+  json_string <- readLines(json_file(circuit_id, year))
+  json <- fromJSON(json_string)
+  df <- json$MRData$RaceTable$Races$QualifyingResults[[1]]
+  df <- jsonlite::flatten(df)
+  columns_to_keep <- c("Driver.driverId", "Constructor.name", "Q1", "Q2", "Q3")
+  df <- df[ , (names(df) %in% columns_to_keep)]
+  df <- transform(df, Qmin = pmin(Q1, Q2, Q3, na.rm = TRUE))
+  df <- filter(df, Qmin != '')
+  df <- transform(df, Qmin_seconds = to_seconds_v(Qmin))
+  return(df)
+}
+
+by_team <- function(df) {
+  return(df %>%
+    group_by(`Constructor.name`) %>%
+    summarise(Qmin_seconds = mean(Qmin_seconds))) %>%
+    arrange(Qmin_seconds)
+}
+
+#TODO 3 decimal places for lap times and gaps
+
+team_clusters <- function(track) {
+  results <- quali_results(track, 2018)
+  results_by_team <- by_team(results)
+  clusters <- kmeans(results_by_team[,"Qmin_seconds"], 3, iter.max = 10, nstart = 5)
+  mappings <- rank(clusters$centers)
+  sorted_centers <- sort(clusters$centers)
+  cluster <- mappings[clusters$cluster]
+  return(mutate(
+    results_by_team,
+    cluster = cluster,
+    center = sorted_centers[cluster],
+    gap = format_gap(Qmin_seconds - center)))
+}
+```
+
+```{r all-results, echo=FALSE, warning=FALSE}
+aus <- team_clusters('albert_park')
+bah <- team_clusters('bahrain')
+chi <- team_clusters('shanghai')
+aze <- team_clusters('BAK')
+spa <- team_clusters('catalunya')
+mon <- team_clusters('monaco')
+can <- team_clusters('villeneuve')
+fra <- team_clusters('ricard')
+aut <- team_clusters('red_bull_ring')
+
+cluster_view <- function(df, name) {
+  df <- df[, (names(df) %in% c("Constructor.name", "cluster"))]
+  colnames(df)[2] <- name
+  return(df)
+}
+
+gap_view <- function(df, name) {
+  df <- mutate(df, gap = gap_span_v(gap, cluster, Qmin_seconds))
+  df <- df[, (names(df) %in% c("Constructor.name", "gap"))]
+  colnames(df)[2] <- name
+  return(df)
+}
+
+join_df <- function(a, b) {
+  return(inner_join(a, b, by = "Constructor.name"))
+}
+```
+
+## 2018 Australian Grand Prix
+
+In this section we are going to look at the Australian Grand Prix in detail and then apply the same methodology to the other qualifying sessions in the 2018 season.
+
+The table below shows for every F1 team:
+
+- Best Time: average of the best lap times posted by the two drivers
+- Cluster: cluster the team belongs to
+- Cluster Time: within-cluster average
+- Gap to Cluster: gap between the best lap time and the cluster time (a negative gap means faster than the cluster time)
+
+<div markdown="0">
+```{r australia, echo=FALSE, results='asis'}
+
+aus_data <- aus %>%
+  mutate(
+    Qmin_seconds = to_lap_time_v(Qmin_seconds),
+    center = to_lap_time_v(center),
+    cluster = cluster_span(cluster)
+  )
+
+kable(aus_data,
+      col.names = c('Team', 'Best Time', 'Cluster', 'Cluster Time', 'Gap To Cluster'),
+      row.names = FALSE,
+      format = 'html',
+      table.attr = "class=\"table\"",
+      escape = FALSE)
+```
+</div>
+
+In Australia, the front-runners were Mercedes, Ferrari, and Red Bull. Three teams (Haas, Renault, and McLaren) represented the mid-field and then the remaining four teams (Force India, Williams, McLaren, and Toro Rosso) were clustered together to form the back of the pack.
+
+The cluster times are separated by at least one second and the gaps to the cluster centers are always within four tenths. This is exactly what we want to see which means that the clustering algorithm did a decent job.
+
+## Overall Results
+
+The following table shows the cluster groupings for all races in the 2018 season so far and the sum of the clusters per team. A lower number means a better overall cluster placement, where the best possible result is to be always part of the frontrunners.
+
+### Clusters
+<div markdown="0">
+```{r echo=FALSE}
+with_bah <- join_df(cluster_view(aus, 'AUS'), cluster_view(bah, 'BAH'))
+with_chi <- join_df(with_bah, cluster_view(chi, 'CHI'))
+with_aze <- join_df(with_chi, cluster_view(aze, 'AZE'))
+with_spa <- join_df(with_aze, cluster_view(spa, 'SPA'))
+with_mon <- join_df(with_spa, cluster_view(mon, 'MON'))
+with_can <- join_df(with_mon, cluster_view(can, 'CAN'))
+with_fra <- join_df(with_can, cluster_view(fra, 'FRA'))
+with_aut <- join_df(with_fra, cluster_view(aut, 'AUT'))
+
+with_total <- mutate(with_aut, total = AUS + BAH + CHI + AZE + SPA + MON + CAN + FRA + AUT)
+with_total <- mutate(with_total, 
+                     AUS = cluster_span_v(AUS), BAH = cluster_span_v(BAH),
+                     CHI = cluster_span_v(CHI), AZE = cluster_span_v(AZE),
+                     SPA = cluster_span_v(SPA), MON = cluster_span_v(MON),
+                     CAN = cluster_span_v(CAN), FRA = cluster_span_v(FRA),
+                     AUT = cluster_span_v(AUT))
+with_total <- arrange(with_total, total)
+
+kable(with_total,
+      col.names = c("Team", "AUS", "BAH", "CHI", "AZE",
+                    "SPA", "MON", "CAN", "FRA", "AUT", "Total"),
+      row.names = FALSE,
+      table.attr = "class=\"table\"",
+      escape = FALSE)
+```
+</div>
+
+### Front Runners
+
+- Mercedes and Ferrari were able to achieve the perfect score (always front runners).
+- Red Bull closely matched the first two except for the Austrian GP where it was clustered as mid-field.
+- In the Austrian GP, a not so great day for Red Bull and an incredible performance for Haas caused the two teams to be clustered together as mid-field while the remaining six teams were labeled back of the pack.
+- Force India was the only other team to join the front runners, which happenened in Baku. On that occasion Sergio Perez managed to get a third place and the only podium of a non Mercedes, Ferrari, or Red Bull driver.
+
+### Midfield and Back of the Pack
+
+- Renault and Haas were in the mid-field in all occasions except for one, while all other teams (excluding the top three) were in the back runner group at least twice.
+- Toro Rosso's performance in Baku gave it its own back of the pack cluster allowing Sauber and Williams to join the midfield for the first time in the season. Sauber also joined the midfield in France where Charles Leclerc qualified eigth.
+- McLaren joined the back of the pack in the French GP, which was definitely their worst performance of the year.
+
+### Overall Results
+
+Looking at the overall results by clustering the totals in the clusters table, these are the three clusters:
+
+- Front-runners: Mercedes, Ferrari, and Red Bull
+- Midfield: Haas, Renault, Force India, and McLaren
+- Back of the pack: Toro Rosso, Sauber, and Williams
+
+### Gaps
+
+The following table shows in detail the gaps to the cluster time and the lap times for all teams and races.
+
+<div markdown="0">
+```{r echo=FALSE}
+with_bah <- join_df(gap_view(aus, 'AUS'), gap_view(bah, 'BAH'))
+with_chi <- join_df(with_bah, gap_view(chi, 'CHI'))
+with_aze <- join_df(with_chi, gap_view(aze, 'AZE'))
+with_spa <- join_df(with_aze, gap_view(spa, 'SPA'))
+with_mon <- join_df(with_spa, gap_view(mon, 'MON'))
+with_can <- join_df(with_mon, gap_view(can, 'CAN'))
+with_fra <- join_df(with_can, gap_view(fra, 'FRA'))
+with_aut <- join_df(with_fra, gap_view(aut, 'AUT'))
+
+kable(with_aut,
+      col.names = c("Team", "AUS", "BAH", "CHI", "AZE", "SPA", "MON", "CAN", "FRA", "AUT"),
+      row.names = FALSE,
+      table.attr = "class=\"table\"",
+      escape = FALSE)
+```
+</div>
+
+## Conclusion
+
+The use of clustering over qualifying results helps creating a simplified view of the results. By grouping teams we don't have to remember the exact lap times or gaps and we can instead concentrate on the clusters.
+
+As far as findings it was not surprising to find the top three teams in their own cluster, but it was interesting to find out for example that Force India in Azerbaijan had the most remarkable qualifying of the non top three teams or that Williams had their only midfield result in Azerbaijan.
+
+Using three clusters might have been a bit limiting. There are races such as the Austrian GP where there is a 2-2-6 split, which means the back of the pack is very crowded. A cluster size of four would probably be a better fit but a size of three allowed very simple naming and explanations.
+
+Did the cluster information help understanding the overall relative standing of teams? Were any patterns missed in the analysis of the Clusters or Gaps tables? Feel free to leave feedback in the comments section below.
