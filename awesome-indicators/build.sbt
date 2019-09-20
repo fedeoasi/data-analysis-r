@@ -7,6 +7,7 @@ lazy val root = (project in file("."))
       scalaVersion := "2.11.12",
       version      := "0.1.0-SNAPSHOT"
     )),
+    herokuAppName in Compile := "indycators",
     name := "Awesome Indicators",
     libraryDependencies ++= Seq(
       airframeLog, arm, webJarsBootstrap, commonsIo, guice, json4sNative, scalaCsv, scalaTest, scalaTestPlay, scopt)

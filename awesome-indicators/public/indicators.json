@@ -37,7 +37,15 @@
       "category":"Economics",
       "description": "Real Private Nonresidential Fixed Investment",
       "link":"https://fred.stlouisfed.org/series/PNFIC1",
-      "unit": "billions of US dollars",
+      "unit": "US dollar (billion)",
+      "tags": ["US", "Economics"]
+    },
+    {
+      "name":"US Debt by Type",
+      "category":"Economics",
+      "description": "Real Private Nonresidential Fixed Investment",
+      "link":"https://www.statista.com/statistics/500814/debt-owned-by-consumers-usa-by-type",
+      "unit": "US dollar (trillion)",
       "tags": ["US", "Economics"]
     },
     {
@@ -45,7 +53,7 @@
       "category":"Economics",
       "description": "Net domestic investment: Private: Domestic business",
       "link":"https://fred.stlouisfed.org/series/W790RC1Q027SBEA",
-      "unit": "billions of US dollars",
+      "unit": "US dollar (billion)",
       "tags": ["US", "Economics"]
     },
     {
@@ -53,7 +61,15 @@
       "category":"Economics",
       "description": "Big Mac indicator for the purchasing power of an economy",
       "link":"https://www.statista.com/statistics/274326/big-mac-index-global-prices-for-a-big-mac/",
-      "unit": "US dollars",
+      "unit": "US dollar",
+      "tags": ["World", "Economics"]
+    },
+    {
+      "name":"Economic Freedom Index",
+      "category":"Economics",
+      "description": "Annual index and ranking to measure the degree of economic freedom in the world's nations",
+      "link":"https://www.heritage.org/index/ranking",
+      "unit": "Percentage",
       "tags": ["World", "Economics"]
     },
     {
@@ -84,134 +100,128 @@
       "name":"US Natural Gas",
       "category":"Energy",
       "link":"https://www.eia.gov/dnav/ng/hist/n9140us2A.htm",
-      "unit": ""
+      "unit": "",
+      "tags": ["Energy", "US"]
     },
     {
       "name":"US Electricity Generation by source",
       "category":"Energy",
       "link":"https://www.eia.gov/electricity/data/browser/#/topic/0?agg=2,0,1&fuel=vvg&geo=g&sec=g&linechart=ELEC.GEN.ALL-US-99.A&columnchart=ELEC.GEN.ALL-US-99.A&map=ELEC.GEN.ALL-US-99.A&freq=A&ctype=linechart&ltype=pin&rtype=s&maptype=0&rse=0&pin=",
-      "unit": ""
+      "unit": "",
+      "tags": ["Energy", "US"]
     },
     {
       "name":"Number of Nuclear Reactors by Country",
       "category":"Energy",
       "link":"https://www.iaea.org/PRIS/WorldStatistics/OperationalReactorsByCountry.aspx",
-      "unit": ""
-    },
-    {
-      "name":"Everything about Oil and Natural Gas",
-      "category":"Energy",
-      "link":"https://www.jodidata.org/oil/database/data-downloads.aspx",
-      "unit": ""
+      "unit": "",
+      "tags": ["Energy", "Nuclear", "World"]
     },
     {
       "name":"Health Insurance Coverage",
       "category":"Health Care",
       "link":"https://www.cdc.gov/nchs/nhis/releases.htm#health_insurance_coverage",
       "extraLink":"https://docs.google.com/spreadsheets/d/1MvxRJgy0OV51QrPJBqClvfZmux3SZLmj_kOzB2q4JzU",
-      "unit": ""
-    },
-    {
-      "name":"Health Care Spending Over Time",
-      "category":"Health Care",
-      "link":"http://www.healthcostinstitute.org",
-      "unit": ""
+      "unit": "",
+      "tags": ["Health Care", "Insurance", "US"]
     },
     {
       "name":"Medicaid Enrollees over time",
       "category":"Health Care",
       "link":"https://www.statista.com/statistics/245347/total-medicaid-enrollment-since-1966",
-      "unit": ""
+      "unit": "",
+      "tags": ["Health Care", "US"]
     },
     {
       "name":"HSA Assets over time",
       "category":"Health Care",
       "link":"http://www.devenir.com/health-savings-account-assets-see-another-period-20-percent-growth-exceeding-34-billion/",
-      "unit": ""
-    },
-    {
-      "name":"Procedure Costs (data from HCCI)",
-      "category":"Health Care",
-      "link":"https://www.guroo.com",
-      "unit": ""
+      "unit": "",
+      "tags": ["Health Care", "Wealth", "US"]
     },
     {
       "name":"Deportations in the US",
       "category":"Immigration",
       "link":"https://www.ice.gov/removal-statistics/2016",
-      "unit": ""
+      "unit": "",
+      "tags": ["US", "Immigration"]
     },
     {
       "name":"Debt to GDP ratio by country",
       "category":"Output and Debt",
       "link":"http://www.tradingeconomics.com/country-list/government-debt-to-gdp",
-      "unit": ""
+      "unit": "",
+      "tags": ["Income", "World"]
     },
     {
       "name":"Income distribution in the US",
       "category":"Income and Wealth",
       "link":"https://dqydj.com/income-percentile-calculator/",
-      "unit": ""
+      "unit": "",
+      "tags": ["Income", "US"]
     },
     {
       "name":"Net worth distribution in the US",
       "category":"Income and Wealth",
       "link":"https://dqydj.com/net-worth-in-the-united-states-zooming-in-on-the-top-centiles/",
-      "unit": ""
+      "unit": "",
+      "tags": ["Wealth", "US"]
     },
     {
       "name":"Gini index by country",
       "category":"Income and Wealth",
       "link":"https://www.cia.gov/library/publications/the-world-factbook/rankorder/2172rank.html",
-      "unit": ""
+      "unit": "",
+      "tags": ["World", "Income", "Inequality"]
     },
     {
       "name":"Homeownership Rate in the US",
       "category":"Income and Wealth",
       "link":"https://fred.stlouisfed.org/series/RHORUSQ156N",
-      "unit": ""
+      "unit": "",
+      "tags": ["Income", "Housing", "US"]
     },
     {
       "name":"Graduation Rates",
       "category":"Education",
       "link":"http://oedb.org/rankings/graduation-rate",
-      "unit": ""
+      "unit": "",
+      "tags": ["Education"]
     },
     {
       "name":"Chicago Temperatures",
-      "category":"Climate and Weather",
+      "category":"Weather",
       "link":"https://www.wunderground.com/history/airport/KORD/2013/1/28/MonthlyHistory.html",
-      "unit": ""
+      "unit": "",
+      "tags": ["Climate", "Weather"]
     },
     {
       "name":"State of the News Media",
       "category":"Journalism",
       "link":"http://www.journalism.org/2016/06/15/newspapers-fact-sheet",
-      "unit": ""
+      "unit": "",
+      "tags": ["Journalism", "Media"]
     },
     {
-      "name":"Car Sales",
-      "category":"Automotive",
-      "link":"http://carsalesbase.com",
-      "unit": ""
-    },
-    {
-      "name":"Automated Driving",
+      "name":"Disengagement Report",
       "category":"Automotive",
       "link":"https://www.dmv.ca.gov/portal/dmv/detail/vr/autonomous/disengagement_report_2017",
-      "unit": ""
+      "unit": "",
+      "tags": ["Automotive", "Self-driving"]
     },
     {
       "name":"US Median Population Age",
-      "category":"Demographics",
+      "category":"Census",
       "link":"https://www.statista.com/statistics/241494/median-age-of-the-us-population/",
-      "unit": ""
+      "unit": "",
+      "tags": ["US", "Census"]
     },
     {
       "name":"US State Population Changes",
       "category":"Census",
       "link":"http://www.census.gov/newsroom/press-releases/2016/cb16-214.html",
-      "unit": ""
+      "unit": "",
+      "tags": ["US", "Census"]
     }
   ]
 }

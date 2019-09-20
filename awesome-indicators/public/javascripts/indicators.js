@@ -11,7 +11,12 @@ $(document).ready(function() {
         }
       },
       { "data": "category" },
-      { "data": "unit" }
+      { "data": "unit" },
+      { "data": "tags",
+        "render": function ( data, type, row ) {
+          return data.join(' ');
+        }
+      }
     ]
   });
 });
