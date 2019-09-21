@@ -7,7 +7,7 @@ $(document).ready(function() {
     "columns": [
       { "data": "name",
         "render": function ( data, type, row ) {
-          return '<a href="' + row.link + '">' + data + '</a>';
+          return '<a href="/indicators/' + row.id + '">' + data + '</a>';
         }
       },
       { "data": "category" },
