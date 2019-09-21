@@ -1,6 +1,6 @@
 package com.github.fedeoasi
 
-import java.io.{FileInputStream, FileOutputStream}
+import java.io.{FileInputStream, FileOutputStream, InputStream}
 import java.net.URL
 import java.nio.file.{Path, Paths}
 
@@ -9,19 +9,23 @@ import resource._
 
 // TODO add custom serializer for URLs
 case class Indicator(
-  name: String, category: String, description: Option[String], link: URL, extraLink: Option[URL], tags: Seq[String])
+  id: Long, name: String, category: String, description: Option[String], link: URL, extraLink: Option[URL], tags: Seq[String])
 case class SerializedIndicator(
-  name: String, category: String, description: Option[String], link: String, extraLink: Option[String], tags:  Option[Seq[String]])
+  id: Long, name: String, category: String, description: Option[String], link: String, extraLink: Option[String], tags:  Option[Seq[String]])
 case class Indicators(indicators: Seq[SerializedIndicator])
 
 object IndicatorReader {
   import org.json4s.native.Serialization._
   implicit val formats: Formats = org.json4s.DefaultFormats
 
-  def readJson(file: Path): Seq[Indicator] = {
-    read[Indicators](StreamInput(new FileInputStream(file.toFile))).indicators.map { i =>
-      Indicator(i.name, i.category, i.description, new URL(i.link), i.extraLink.flatMap(toUrl), i.tags.getOrElse(Seq.empty))
+  def readJson(input: InputStream): Seq[Indicator] = {
+    read[Indicators](StreamInput(input)).indicators.map { i =>
+      Indicator(i.id, i.name, i.category, i.description, new URL(i.link), i.extraLink.flatMap(toUrl), i.tags.getOrElse(Seq.empty))
     }
+  }
+
+  def readJson(file: Path): Seq[Indicator] = {
+    readJson(new FileInputStream(file.toFile))
   }
 
   def toUrl(s: String): Option[URL] = if (s.nonEmpty) Some(new URL(s)) else None

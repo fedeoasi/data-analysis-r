@@ -1,6 +1,7 @@
 {
   "indicators":[
     {
+      "id": 1,
       "name":"US Jobs",
       "category":"US Labor",
       "description": "All employees, thousands, total nonfarm, seasonally adjusted",
@@ -9,6 +10,7 @@
       "tags": ["US", "Labor", "Economics"]
     },
     {
+      "id": 2,
       "name":"US Labor Participation Rate",
       "category":"US Labor",
       "description": "Civilian labor force participation rate",
@@ -17,6 +19,7 @@
       "tags": ["US", "Labor", "Economics"]
     },
     {
+      "id": 3,
       "name":"US Unemployment Rate",
       "category":"US Labor",
       "description": "Unemployment Rate",
@@ -25,6 +28,7 @@
       "tags": ["US", "Labor", "Economics"]
     },
     {
+      "id": 4,
       "name":"US Interest Rates",
       "category":"Economics",
       "description": "United States Fed Funds Rate",
@@ -33,6 +37,7 @@
       "tags": ["US", "Economics"]
     },
     {
+      "id": 5,
       "name":"Non-residential Investment",
       "category":"Economics",
       "description": "Real Private Nonresidential Fixed Investment",
@@ -41,6 +46,7 @@
       "tags": ["US", "Economics"]
     },
     {
+      "id": 6,
       "name":"US Debt by Type",
       "category":"Economics",
       "description": "Real Private Nonresidential Fixed Investment",
@@ -49,6 +55,7 @@
       "tags": ["US", "Economics"]
     },
     {
+      "id": 7,
       "name":"Net Domestic Investment",
       "category":"Economics",
       "description": "Net domestic investment: Private: Domestic business",
@@ -57,6 +64,7 @@
       "tags": ["US", "Economics"]
     },
     {
+      "id": 8,
       "name":"Big Mac Index",
       "category":"Economics",
       "description": "Big Mac indicator for the purchasing power of an economy",
@@ -65,6 +73,7 @@
       "tags": ["World", "Economics"]
     },
     {
+      "id": 9,
       "name":"Economic Freedom Index",
       "category":"Economics",
       "description": "Annual index and ranking to measure the degree of economic freedom in the world's nations",
@@ -73,6 +82,7 @@
       "tags": ["World", "Economics"]
     },
     {
+      "id": 10,
       "name":"US Profit Margins by Sector",
       "category":"Economics",
       "descriptions": "US profit margins for US companies divided by sector",
@@ -81,6 +91,7 @@
       "tags": ["US", "Economics"]
     },
     {
+      "id": 11,
       "name":"Oil Price",
       "category":"Energy",
       "description": "Price of crude oil over time",
@@ -89,6 +100,7 @@
       "tags": ["Energy"]
     },
     {
+      "id": 12,
       "name":"Global CO2 Emissions",
       "category":"Energy",
       "descriptions": "Global CO2 emissions",
@@ -97,6 +109,7 @@
       "tags": ["Energy", "Environment", "Climate"]
     },
     {
+      "id": 13,
       "name":"US Natural Gas",
       "category":"Energy",
       "link":"https://www.eia.gov/dnav/ng/hist/n9140us2A.htm",
@@ -104,6 +117,7 @@
       "tags": ["Energy", "US"]
     },
     {
+      "id": 14,
       "name":"US Electricity Generation by source",
       "category":"Energy",
       "link":"https://www.eia.gov/electricity/data/browser/#/topic/0?agg=2,0,1&fuel=vvg&geo=g&sec=g&linechart=ELEC.GEN.ALL-US-99.A&columnchart=ELEC.GEN.ALL-US-99.A&map=ELEC.GEN.ALL-US-99.A&freq=A&ctype=linechart&ltype=pin&rtype=s&maptype=0&rse=0&pin=",
@@ -111,6 +125,7 @@
       "tags": ["Energy", "US"]
     },
     {
+      "id": 15,
       "name":"Number of Nuclear Reactors by Country",
       "category":"Energy",
       "link":"https://www.iaea.org/PRIS/WorldStatistics/OperationalReactorsByCountry.aspx",
@@ -118,6 +133,7 @@
       "tags": ["Energy", "Nuclear", "World"]
     },
     {
+      "id": 16,
       "name":"Health Insurance Coverage",
       "category":"Health Care",
       "link":"https://www.cdc.gov/nchs/nhis/releases.htm#health_insurance_coverage",
@@ -126,6 +142,7 @@
       "tags": ["Health Care", "Insurance", "US"]
     },
     {
+      "id": 17,
       "name":"Medicaid Enrollees over time",
       "category":"Health Care",
       "link":"https://www.statista.com/statistics/245347/total-medicaid-enrollment-since-1966",
@@ -133,6 +150,7 @@
       "tags": ["Health Care", "US"]
     },
     {
+      "id": 18,
       "name":"HSA Assets over time",
       "category":"Health Care",
       "link":"http://www.devenir.com/health-savings-account-assets-see-another-period-20-percent-growth-exceeding-34-billion/",
@@ -140,6 +158,7 @@
       "tags": ["Health Care", "Wealth", "US"]
     },
     {
+      "id": 19,
       "name":"Deportations in the US",
       "category":"Immigration",
       "link":"https://www.ice.gov/removal-statistics/2016",
@@ -147,6 +166,7 @@
       "tags": ["US", "Immigration"]
     },
     {
+      "id": 20,
       "name":"Debt to GDP ratio by country",
       "category":"Output and Debt",
       "link":"http://www.tradingeconomics.com/country-list/government-debt-to-gdp",
@@ -154,6 +174,7 @@
       "tags": ["Income", "World"]
     },
     {
+      "id": 21,
       "name":"Income distribution in the US",
       "category":"Income and Wealth",
       "link":"https://dqydj.com/income-percentile-calculator/",
@@ -161,6 +182,7 @@
       "tags": ["Income", "US"]
     },
     {
+      "id": 22,
       "name":"Net worth distribution in the US",
       "category":"Income and Wealth",
       "link":"https://dqydj.com/net-worth-in-the-united-states-zooming-in-on-the-top-centiles/",
@@ -168,6 +190,7 @@
       "tags": ["Wealth", "US"]
     },
     {
+      "id": 23,
       "name":"Gini index by country",
       "category":"Income and Wealth",
       "link":"https://www.cia.gov/library/publications/the-world-factbook/rankorder/2172rank.html",
@@ -175,6 +198,7 @@
       "tags": ["World", "Income", "Inequality"]
     },
     {
+      "id": 24,
       "name":"Homeownership Rate in the US",
       "category":"Income and Wealth",
       "link":"https://fred.stlouisfed.org/series/RHORUSQ156N",
@@ -182,6 +206,7 @@
       "tags": ["Income", "Housing", "US"]
     },
     {
+      "id": 25,
       "name":"Graduation Rates",
       "category":"Education",
       "link":"http://oedb.org/rankings/graduation-rate",
@@ -189,6 +214,7 @@
       "tags": ["Education"]
     },
     {
+      "id": 26,
       "name":"Chicago Temperatures",
       "category":"Weather",
       "link":"https://www.wunderground.com/history/airport/KORD/2013/1/28/MonthlyHistory.html",
@@ -196,6 +222,7 @@
       "tags": ["Climate", "Weather"]
     },
     {
+      "id": 27,
       "name":"State of the News Media",
       "category":"Journalism",
       "link":"http://www.journalism.org/2016/06/15/newspapers-fact-sheet",
@@ -203,6 +230,7 @@
       "tags": ["Journalism", "Media"]
     },
     {
+      "id": 28,
       "name":"Disengagement Report",
       "category":"Automotive",
       "link":"https://www.dmv.ca.gov/portal/dmv/detail/vr/autonomous/disengagement_report_2017",
@@ -210,6 +238,7 @@
       "tags": ["Automotive", "Self-driving"]
     },
     {
+      "id": 29,
       "name":"US Median Population Age",
       "category":"Census",
       "link":"https://www.statista.com/statistics/241494/median-age-of-the-us-population/",
@@ -217,6 +246,7 @@
       "tags": ["US", "Census"]
     },
     {
+      "id": 30,
       "name":"US State Population Changes",
       "category":"Census",
       "link":"http://www.census.gov/newsroom/press-releases/2016/cb16-214.html",

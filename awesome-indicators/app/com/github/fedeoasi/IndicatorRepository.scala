@@ -5,6 +5,10 @@ import java.nio.file.Paths
 class IndicatorRepository(indicators: Seq[Indicator]) {
   def all: Seq[Indicator] = indicators
 
+  def findById(id: Long): Option[Indicator] = {
+    indicators.find(_.id == id)
+  }
+
   def findByCategory(category: String): Seq[Indicator] = {
     indicators.filter(_.category == category)
   }
