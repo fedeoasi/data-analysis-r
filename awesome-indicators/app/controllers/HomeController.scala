@@ -29,7 +29,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
 
   def indicator(id: Long) = Action { implicit request: Request[AnyContent] =>
     indicatorRepo.findById(id) match {
-      case Some(indicator) => Ok(indicator.toString)
+      case Some(indicator) => Ok(views.html.indicator(indicator))
       case None => NotFound(s"Cannot find indicator with id $id")
     }
   }
