@@ -252,6 +252,22 @@
       "link":"http://www.census.gov/newsroom/press-releases/2016/cb16-214.html",
       "unit": "",
       "tags": ["US", "Census"]
+    },
+    {
+      "id": 31,
+      "name":"Sea Level",
+      "category":"Climate",
+      "link":"https://www.epa.gov/climate-indicators/climate-change-indicators-sea-level",
+      "unit": "inch",
+      "tags": ["Climate"]
+    },
+    {
+      "id": 32,
+      "name":"Social Security Recipient Counts",
+      "category":"Economics",
+      "link":"https://www.ssa.gov/OACT/STATS/OASDIbenies.html",
+      "unit": "count",
+      "tags": ["US", "Economics", "Pensions", "Retirement"]
     }
   ]
 }
