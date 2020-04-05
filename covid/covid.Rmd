@@ -1,0 +1,228 @@
+---
+title: "COVID-19: United States and Italy"
+layout: post
+output:
+  md_document:
+    pandoc_args: ["-s", "-t", "markdown"]
+tags: ["covid"]
+always_allow_html: true
+---
+  
+## Introduction
+
+This blog post is about evaluating the growth rate of the spread of COVID-19 in the United States and Italy. 
+
+```{r load-packages, message=FALSE, echo=FALSE}
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+library(reshape2)
+library(minpack.lm)
+library(base)
+library(kableExtra)
+library(gridExtra)
+library(DT)
+```
+
+## Dataset
+
+- For the United States, the data used is from the [COVID Tracking Project](https://covidtracking.com/), which aggregates data from state and local governments
+- For Italy, the data is provided by the Civil Protection Department on a [Github repository](https://github.com/pcm-dpc/COVID-19)
+
+Both datasets provide time series data about the number of cases, deaths, people being tested, and more.
+
+What we are going to use in this analysis is the number of people who tested positive, and the number of deaths. The former gives an idea of what to expect in the future, but seems highly dependent on how much testing is performed. The latter is more realistic (assuming that most covid deaths are reported) but lags in showing the effects of measures such as lockdowns and social distancing.
+
+## Methodology
+
+Most of the growth curves are simple [exponential](https://en.wikipedia.org/wiki/Exponential_function) curves. Here we estimate the parameters of an exponential function, and show the growth rate. A growth rate of 1.30 means 30% day to day growth.
+
+Most graphs shown in the rest of this post show the side by side comparison of positive over time, and deaths over time.
+
+```{r set-fig-path, echo=FALSE}
+df <- read.csv('http://covidtracking.com/api/states/daily.csv')
+
+df$date <- ymd(df$date)
+df <- filter(df, !is.na(death) & death > 0)
+df <- rev(df)
+
+us_df <- read.csv('https://covidtracking.com/api/us/daily.csv')
+us_df$date <-ymd(us_df$date)
+us_df <- arrange(us_df, date)
+
+preprocess_it <- function(data) {
+  data$date <- ymd(substring(data$data, first = 0, last = 10))
+  data$death <- data$deceduti
+  data$positive <- data$totale_positivi
+  return(data)
+}
+
+it_df <- read.csv('https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv')
+it_df <- preprocess_it(it_df)
+
+it_reg <- read.csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-regioni/dpc-covid19-ita-regioni.csv")
+it_reg <- preprocess_it(it_reg)
+
+opts_knit$set(base.dir = getwd(), base.url = '/')
+opts_chunk$set(fig.path = 'assets/covid/')
+```
+
+```{r echo=FALSE}
+fit_exp <- function(series, state) {
+  rownumber = 1:length(series)
+  data <- list(rownumber = rownumber, series = series)
+  initial_model <- lm(log(series) ~ rownumber)
+  start <- list(a = coef(initial_model)[[1]], b = coef(initial_model)[[2]])
+  mod <- nls(series ~ exp(a + b * rownumber), data = data, start = start)
+  return(mod)
+}
+
+growth_rate <- function(mod) { 
+  return(exp(coef(mod)[["b"]]))
+}
+
+try_fit_exp <- function(series, state) {
+   tryCatch(growth_rate(fit_exp(series, state)),
+    error = function(c) {
+      print(paste('Error while computing growth rate for state', state[[1]], c, sep = " "))
+       return(0)
+    },
+    warning = function(c) {
+      print(paste('Error while computing growth rate for state ', state[[1]], sep = " "))
+      return(0)
+    },
+    message = function(c) {
+      print(paste('Error while computing growth rate for state ', state[[1]], sep = " "))
+      return(0)
+    }
+  )
+}
+```
+
+
+```{r echo=FALSE}
+round_growth <- function(growth) {
+  return(round(growth, digits = 4))
+}
+
+growth_graph <- function(data, title, series, series_name) {
+  model <- fit_exp(series, title)
+  rownumber <- 1:length(data$date)
+  pred <- predict(model, list(rownumber = rownumber))
+  growth <- growth_rate(model)
+  ggplot(data, aes(date, series, pred)) +
+    geom_point(aes(y = series), stat="identity") +
+    geom_line(aes(y = pred, color = blue), stat="identity", colour="blue") +
+    ggtitle(label = paste(series_name, paste("(", round(growth, digits = 4), sep = ''), "growth)", sep = " "), subtitle = NULL) +
+    labs(x = "Date", y = series_name) +
+    scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+}
+
+growth_side_by_side <- function(data, title) {
+  positive <- growth_graph(data, title, data$positive, 'Positive')
+  death <- growth_graph(data, title, data$death, 'Death')
+  lay <- rbind(c(1,2), c(1,2))
+  grid.arrange(positive, death, layout_matrix = lay, top = title)
+  #grid.arrange(positive, death, nrow = 2, ncol = 2, top = state_code)
+}
+```
+
+## United States and Italy
+
+```{r echo=FALSE}
+growth_side_by_side(us_df, 'US')
+
+```
+
+The United States is currently experiencing 17.3% daily growth in the number of positive cases, and about 24% growth in the number of deaths. The inferred exponential function is a good fit, especially for the graph about deaths.
+
+If we look at the graph below for Italy, the exponential function is no longer a good fit for either positive or deaths, because it appears to have flattened. A [sigmoid](https://en.wikipedia.org/wiki/Sigmoid_function) function would fit better, but that will be left for a later improvement to the methodology.
+
+```{r echo=FALSE}
+growth_side_by_side(it_df, 'Italy')
+```
+
+To really compare the United States with Italy, we need to look at the period for Italy that has experienced exponential growth. In the next graph we only kept the dates on or before March 17th.
+
+Until then, the daily growth in the number of cases was almost 19% and for deaths it was 24%. These numbers are remarkably similar to what the United States is experiencing at this time.
+
+```{r echo=FALSE}
+early_it <- filter(it_df, date < ymd('20200317'))
+growth_side_by_side(early_it, 'Italy (Until 2020-03-16)')
+```
+
+If we drill down to one of the most hit regions of Italy (Lombardia, the region where Milan is), we surprisingly find slightly lower numbers. 
+
+```{r echo=FALSE}
+it_lom <- filter(it_reg, denominazione_regione == 'Lombardia')
+early_lom <- filter(it_lom, date < ymd('20200317'))
+growth_side_by_side(early_lom, 'Lombardia (Until 2020-03-16)')
+```
+
+## US State-by-State Analysis
+
+The following table shows the growth rates for the US broken up by state. Death Growth and Positive Growth are the same rates as computed in the prior section. We are also showing the total numbers of deaths, positive, and tested to help contextualize the growth (e.g., 40% growth when the number of cases is very low could be just caused by reporting and is unlikely to be sustained in the future). 
+
+```{r echo=FALSE, message=FALSE, results='asis'}
+grouped <- df %>%
+    group_by(state) %>%
+    arrange(date) %>%
+    summarise(
+      death_growth = round_growth(try_fit_exp(death, state)),
+      positive_growth = round_growth(try_fit_exp(positive, state)),
+      deaths = max(death),
+      positive = max(positive),
+      tested = max(total)
+    )
+
+sorted <- arrange(grouped, desc(death_growth))
+
+dt <- DT::datatable(
+  sorted,
+  width = '100%',
+  colnames = c("State", "Death Growth", "Positive Growth", "Deaths", "Positive", "Tested"),
+    extensions = c('FixedColumns',"FixedHeader"),
+    options = list(scrollX = TRUE, paging=TRUE, fixedHeader=TRUE, sorting=TRUE))
+
+htmltools::as.tags(dt, standalone=TRUE)
+```
+
+<br><br><br><br>
+Below are the side by side graphs for some selected states.
+
+```{r echo=F}
+show_state <- function(state_code) {
+  for_state <- df %>%
+    filter(state == state_code) %>%
+    arrange(date)
+  growth_side_by_side(for_state, state_code)
+}
+```
+
+New York seems to have flattened the positive growth curve, but its death growth is still exponential. It is the state that seems to be closer to Italy in terms of timeline.
+
+```{r echo=F}
+show_state('NY')
+```
+
+California is still in the exponential growth phase, but its death growth is a bit better than the national one.
+
+```{r echo=F}
+show_state('CA')
+```
+
+Illinois is also in the exponential growth phase. The growth is slowing down on a daily basis, but the exponential function is still a very good fit.
+
+```{r echo=F}
+show_state('IL')
+```
+
+## Conclusion
+
+There is still a lot to do to make this analysis more informative, but it was interesting to see how close to a simple exponential most of these curves are. Hopefully the curves will flatten everywhere.
+
+Next I'll be working on figuring out how these growth rates change over time. Please leave some comments below with suggestions or things I might have missed.
+

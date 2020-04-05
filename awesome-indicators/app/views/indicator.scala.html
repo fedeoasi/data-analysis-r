@@ -1,0 +1,34 @@
+@import com.github.fedeoasi.Indicator
+@(indicator: Indicator)
+
+@main("Indicator") {
+
+<h1>Indicator</h1>
+
+@defining(indicator) { i =>
+  <dl class="row">
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">@{i.name}</dd>
+
+    <dt class="col-sm-3">Category</dt>
+    <dd class="col-sm-9">@{i.category}</dd>
+
+    @for(desc <- i.description) {
+      <dt class="col-sm-3">Description</dt>
+      <dd class="col-sm-9">@desc</dd>
+    }
+
+    <dt class="col-sm-3">Link</dt>
+    <dd class="col-sm-9"><a href="@{i.link}">@{i.link}</a></dd>
+
+    @for(extraLink <- i.extraLink) {
+      <dt class="col-sm-3">Extra Link</dt>
+      <dd class="col-sm-9">@extraLink</dd>
+    }
+
+    <dt class="col-sm-3">Tags</dt>
+    <dd class="col-sm-9">@(i.tags.mkString(", "))</dd>
+  </dl>
+}
+
+}
